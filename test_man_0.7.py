@@ -46,7 +46,7 @@ password = ""
 
 #class Theme, which holds values for the colors and styles that the program should use for all widgets.  Default values approximate Tkinter defaults.
 class Theme:
-    def __init__(self, colorsTitle="Default Gray", fontSizeTitle="Medium", fontTitle="Sans-Serif", bg="gray95", fg="black", contrastbg="white", contrastfg="black", selectbg="#da291c", selectfg="white", fontSize=9, font="Helvetica"):
+    def __init__(self, colorsTitle="Default Gray", fontSizeTitle="Medium", fontTitle="Sans-Serif", bg="gray95", fg="black", contrastbg="white", contrastfg="black", selectbg="#00a2ed", selectfg="white", fontSize=9, font="Helvetica"):
         #inititalize theme identifiers
         self.colorsTitle = colorsTitle
         self.fontSizeTitle = fontSizeTitle
@@ -415,7 +415,6 @@ def saveSession():
         if not file is None:
             file.close()
         
-
 def openSession():
     try:
         #open *.JSON file using system dialog
@@ -438,7 +437,7 @@ def openSession():
 def connect():
     global ser
     #setup the new menu
-    connector = Toplevel()
+    connector = T.apply(Toplevel())
     connector.title('Connect')
     connector.grab_set() #make window modal
     connector.focus_set()
@@ -462,10 +461,10 @@ def connect():
         nonlocal currentPort
         currentPort = port
         if currentPort > 0 and currentPort <= 256:
-            dropdown.config(text='COM%s' % (currentPort))
+            dropdown.config(text='COM%s' % (currentPort)+" \U000025BC")
             connectButton.config(state=NORMAL)                       
         else:
-            dropdown.config(text="Select a COM port")
+            dropdown.config(text="Select a COM port \U000025BC")
             connectButton.config(state=DISABLED)
 
     #connects the program to the chosen COM port
@@ -483,20 +482,20 @@ def connect():
             connector.destroy()
 
     #draw port chooser dropdown
-    dropdown = Menubutton(connector, width=17, relief=RAISED)
-    dropdown.menu = Menu(dropdown, tearoff=0)
+    dropdown = T.apply(Menubutton(connector, width=17, relief=RAISED))
+    dropdown.menu = T.apply(Menu(dropdown, tearoff=0))
     dropdown["menu"] = dropdown.menu
     dropdown.grid(row=0, column=0, padx=5, pady=5)
 
     #refresh button
-    Button(connector, text='Rescan COM Ports', command=getCOMs).grid(row=0, column=1, padx=5, pady=5)
+    T.apply(Button(connector, text='Rescan COM Ports', command=getCOMs)).grid(row=0, column=1, padx=5, pady=5)
 
     #connect Button
-    connectButton = Button(connector, text='Connect', command=connect)
+    connectButton = T.apply(Button(connector, text='Connect', command=connect))
     connectButton.grid(row=0, column=2, padx=5, pady=5)
 
     #close button
-    Button(connector, text='Cancel', command=connector.destroy).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(connector, text='Cancel', command=connector.destroy)).grid(row=0, column=3, padx=5, pady=5)
 
     getCOMs() #scan ports to populate list for the first time
 
@@ -511,19 +510,19 @@ def editTests(initialTestNum=0):
         messagebox.showerror("Power Tools Test Manager", "There are no tests to edit")
         return
     #setup the new menu
-    editor = Toplevel()
+    editor = T.apply(Toplevel())
     editor.title("Edit Stations")
     editor.grab_set() #make window modal
     editor.focus_set()
     
 
-    topFrame = LabelFrame(editor, bd=0)
+    topFrame = T.apply(Frame(editor, bd=0))
     topFrame.pack(side=TOP)
 
-    midFrame = Frame(editor, bd=0)
+    midFrame = T.apply(Frame(editor, bd=0))
     midFrame.pack(side=TOP)
 
-    botFrame = LabelFrame(editor, bd=0)
+    botFrame = T.apply(Frame(editor, bd=0))
     botFrame.pack(side=BOTTOM)
 
     if initialTestNum in testIndexDict:
@@ -532,19 +531,19 @@ def editTests(initialTestNum=0):
         currentTestIndex=-1
 
     #Draw empty fields, may want to disable in the future
-    Label(topFrame, text="PLC Slave Address: ").grid(row=1, column=1)
-    slaveAddressEntry = Entry(topFrame)
+    T.apply(Label(topFrame, text="PLC Slave Address: ")).grid(row=1, column=1)
+    slaveAddressEntry = T.apply(Entry(topFrame))
     slaveAddressEntry.grid(row=1, column=2, pady=5, padx=10)
     
-    Label(topFrame, text="Station Name: ").grid(row=2, column=1)
-    nameEntry = Entry(topFrame)
+    T.apply(Label(topFrame, text="Station Name: ")).grid(row=2, column=1)
+    nameEntry = T.apply(Entry(topFrame))
     nameEntry.grid(row=2, column=2, pady=5, padx=10)
 
-    Label(topFrame, text="Serial Number: ").grid(row=3, column=1)
-    serialEntry = Entry(topFrame)
+    T.apply(Label(topFrame, text="Serial Number: ")).grid(row=3, column=1)
+    serialEntry = T.apply(Entry(topFrame))
     serialEntry.grid(row=3, column=2, pady=5, padx=10)
     
-    Label(midFrame, text="Enter names and units for data types\n Select checkbox to display datatype on test manager:").grid(row=2, column=0, columnspan=8)
+    T.apply(Label(midFrame, text="Enter names and units for data types\n Select checkbox to display datatype on test manager:")).grid(row=2, column=0, columnspan=8)
 
     #Building an array of the interactable objects for expandable data
     numLabel = []
@@ -553,11 +552,11 @@ def editTests(initialTestNum=0):
     showEntry = []
     showEntryVar = []
     for ii in range(numberOfData):
-        numLabel.append(Label(midFrame, text=str(ii+1)))
-        valNameEntries.append(Entry(midFrame))
-        unitEntries.append(Entry(midFrame, width=5))
+        numLabel.append(T.apply(Label(midFrame, text=str(ii+1))))
+        valNameEntries.append(T.apply(Entry(midFrame)))
+        unitEntries.append(T.apply(Entry(midFrame, width=5)))
         showEntryVar.append(IntVar())
-        showEntry.append(Checkbutton(midFrame, variable=showEntryVar[ii], onvalue=1, offvalue=0))
+        showEntry.append(T.apply(Checkbutton(midFrame, variable=showEntryVar[ii], onvalue=1, offvalue=0)))
 
         numLabel[ii].grid(row=(ii%16+3), column=(int(ii/16)*4))
         valNameEntries[ii].grid(row=(ii%16+3), column=(int(ii/16)*4+1), padx=5)
@@ -584,7 +583,7 @@ def editTests(initialTestNum=0):
         nonlocal currentTestIndex
         currentTestIndex=testIndex
         if (currentTestIndex >= 0):
-            dropdown.config(text=("Station "+str(tests[currentTestIndex].testNum)+": "+tests[testIndex].name))
+            dropdown.config(text=("Station "+str(tests[currentTestIndex].testNum)+": "+tests[testIndex].name+" \U000025BC"))
 
             slaveAddressEntry.config(state=NORMAL)
             slaveAddressEntry.delete(0, END)
@@ -615,7 +614,7 @@ def editTests(initialTestNum=0):
             selectAllButton.config(state=NORMAL)
             deselectAllButton.config(state=NORMAL)
         else:
-            dropdown.config(text=("Choose a station to edit"))
+            dropdown.config(text=("Choose a station to edit \U000025BC"))
             
             slaveAddressEntry.delete(0, END)
             slaveAddressEntry.config(state=DISABLED)
@@ -637,39 +636,39 @@ def editTests(initialTestNum=0):
             deselectAllButton.config(state=DISABLED)
             
 
-    #quickly selects all tests
+    #quickly selects all data
     def selectAll():
         nonlocal showEntry
         for i in range(len(showEntry)):
             showEntry[i].select()
             
-    #quickly deselects all tests   
+    #quickly deselects all data   
     def deselectAll():
         nonlocal showEntry
         for i in range(len(showEntry)):
             showEntry[i].deselect()
 
     #draw test chooser dropdown
-    dropdown = Menubutton(topFrame, text="[default]", relief=RAISED)
-    dropdown.menu = Menu(dropdown, tearoff=0)
+    dropdown = T.apply(Menubutton(topFrame, text="[default]", relief=RAISED))
+    dropdown.menu = T.apply(Menu(dropdown, tearoff=0))
     dropdown["menu"] = dropdown.menu
     for ii in range(len(tests)):
         dropdown.menu.add_command(label=("Station "+str(tests[ii].testNum)+": "+tests[ii].name), command=lambda x=ii: select(x))
     dropdown.grid(row=0, column=2, pady=5, padx=10)
 
     #save button
-    saveButton = Button(botFrame, text="Save Changes", command=save)
+    saveButton = T.apply(Button(botFrame, text="Save Changes", command=save))
     saveButton.grid(row=0, column=2, padx=5, pady=5)
 
     #cancel button
-    Button(botFrame, text="Cancel", command=editor.destroy).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Cancel", command=editor.destroy)).grid(row=0, column=3, padx=5, pady=5)
 
     #Select All button
-    selectAllButton = Button(botFrame, text="Select All", command=selectAll)
+    selectAllButton = T.apply(Button(botFrame, text="Select All", command=selectAll))
     selectAllButton.grid(row=0, column=0, padx=5, pady=5)
     
     #Deselect All button
-    deselectAllButton = Button(botFrame, text="Deselect All", command=deselectAll)
+    deselectAllButton = T.apply(Button(botFrame, text="Deselect All", command=deselectAll))
     deselectAllButton.grid(row=0, column=1, padx=5, pady=5)
 
     select(currentTestIndex)
@@ -684,34 +683,34 @@ def addTest():
     global defaultValNames
 
     #setup the new menu
-    adder = Toplevel()
+    adder = T.apply(Toplevel())
     adder.title("Add Station")
     adder.grab_set() #make window modal
     adder.focus_set()
 
-    topFrame = LabelFrame(adder, bd=0)
+    topFrame = T.apply(Frame(adder, bd=0))
     topFrame.pack(side=TOP)
 
-    midFrame = Frame(adder, bd=0)
+    midFrame = T.apply(Frame(adder, bd=0))
     midFrame.pack(side=TOP)
 
-    botFrame = LabelFrame(adder, bd=0)
+    botFrame = T.apply(Frame(adder, bd=0))
     botFrame.pack(side=BOTTOM)
 
     #Draw empty fields
-    Label(topFrame, text="PLC Slave Address: ").grid(row=0, column=0)
-    slaveAddressEntry = Entry(topFrame)
+    T.apply(Label(topFrame, text="PLC Slave Address: ")).grid(row=0, column=0)
+    slaveAddressEntry = T.apply(Entry(topFrame))
     slaveAddressEntry.grid(row=0, column=1, pady=5, padx=10)
     
-    Label(topFrame, text="Station Name: ").grid(row=1, column=0)
-    nameEntry = Entry(topFrame)
+    T.apply(Label(topFrame, text="Station Name: ")).grid(row=1, column=0)
+    nameEntry = T.apply(Entry(topFrame))
     nameEntry.grid(row=1, column=1, pady=5, padx=10)
 
-    Label(topFrame, text="Serial Number: ").grid(row=2, column=0)
-    serialEntry = Entry(topFrame)
+    T.apply(Label(topFrame, text="Serial Number: ")).grid(row=2, column=0)
+    serialEntry = T.apply(Entry(topFrame))
     serialEntry.grid(row=2, column=1, pady=5, padx=10)
 
-    Label(topFrame, text="Enter names and units for data types.\n Select checkbox to display datatype on test manager:").grid(row=3, column=0, columnspan=8)
+    T.apply(Label(topFrame, text="Enter names and units for data types.\n Select checkbox to display datatype on test manager:")).grid(row=3, column=0, columnspan=8)
 
     #Building an array of the interactable objects for expandable data
     numLabel = []
@@ -721,11 +720,11 @@ def addTest():
     showEntryVar = []
     for ii in range(numberOfData):
         #populate lists
-        numLabel.append(Label(midFrame, text=str(ii+1)))
-        valNameEntries.append(Entry(midFrame))
-        unitEntries.append(Entry(midFrame, width=5))
+        numLabel.append(T.apply(Label(midFrame, text=str(ii+1))))
+        valNameEntries.append(T.apply(Entry(midFrame)))
+        unitEntries.append(T.apply(Entry(midFrame, width=5)))
         showEntryVar.append(IntVar())
-        showEntry.append(Checkbutton(midFrame, variable=showEntryVar[ii], onvalue=1, offvalue=0))
+        showEntry.append(T.apply(Checkbutton(midFrame, variable=showEntryVar[ii], onvalue=1, offvalue=0)))
 
         #populate entries with default values
         valNameEntries[ii].insert(0, defaultValNames[ii])
@@ -740,7 +739,7 @@ def addTest():
     showEntry[0].select()
     showEntry[1].select()
 
-    #returns true if the station is added successfully, false otherwise
+    #returns true if the station is added successfully, false otherwise #TODO add confirmation of a successful addition
     def add():
         global tests
         global defaultValNames
@@ -784,15 +783,15 @@ def addTest():
             showEntry[i].deselect()
     
     #save button
-    Button(botFrame, text="Add Station", command = add).grid(row=0, column=2, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Add Station", command = add)).grid(row=0, column=2, padx=5, pady=5)
     #save button
-    Button(botFrame, text="Add and Close", command = addAndExit).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Add and Close", command = addAndExit)).grid(row=0, column=3, padx=5, pady=5)
     #cancel button
-    Button(botFrame, text="Close", command=adder.destroy).grid(row=0, column=4, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Close", command=adder.destroy)).grid(row=0, column=4, padx=5, pady=5)
     #Select All button
-    Button(botFrame, text="Select All", command=selectAll).grid(row=0, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Select All", command=selectAll)).grid(row=0, column=0, padx=5, pady=5)
     #Deselect All button
-    Button(botFrame, text="Deselect All", command=deselectAll).grid(row=0, column=1, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Deselect All", command=deselectAll)).grid(row=0, column=1, padx=5, pady=5)
 
     #set min window size
     adder.update_idletasks()
@@ -807,19 +806,19 @@ def deleteTest():
         return
     
     #setup the new menu
-    deleter = Toplevel()
+    deleter = T.apply(Toplevel())
     deleter.title("Delete Stations")
     deleter.grab_set() #make window modal
     deleter.focus_set()
 
-    optionsFrame = Frame(deleter, bd=0)
+    optionsFrame = T.apply(Frame(deleter, bd=0))
     optionsFrame.pack(side=TOP)
 
-    botFrame = Frame(deleter, bd=0)
+    botFrame = T.apply(Frame(deleter, bd=0))
     botFrame.pack(side=BOTTOM)
     
-    #dictionary linking option name to internal index
-    l = {}
+    #list of all labels
+    l = []
     #response list of IntVar()
     r = []
     #list of all checkbuttons
@@ -827,11 +826,13 @@ def deleteTest():
     #draw the set of checkboxes to the screen
     for i in range(len(tests)):
         option = "Station "+str(tests[i].testNum)+": "+tests[i].name
-        l[option] = i
+        l.append(T.apply(Label(optionsFrame, text=option)))
         r.append(IntVar())
         r[i].set(0)
-        c.append(Checkbutton(optionsFrame, text=option, variable=r[i], onvalue=1, offvalue=0, padx=10))
-        c[i].grid(row=i%10, column=int(i/10))
+        c.append(T.apply(Checkbutton(optionsFrame, text=None, variable=r[i], onvalue=1, offvalue=0, padx=10)))
+
+        l[-1].grid(row=i%10, column=(i//10)*2)
+        c[i].grid(row=i%10, column=(i//10)*2+1)
 
     def delete():
         for ii in range(len(r)-1,-1,-1):
@@ -845,6 +846,7 @@ def deleteTest():
         nonlocal c
         for i in range(len(c)):
             c[i].select()
+
     #quickly deselects all tests   
     def deselectAll():
         nonlocal c
@@ -852,13 +854,13 @@ def deleteTest():
             c[i].deselect()
 
     #save button
-    Button(botFrame, text="Delete Stations", command = delete).grid(row=1, column=2, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Delete Stations", command = delete)).grid(row=1, column=2, padx=5, pady=5)
     #cancel button
-    Button(botFrame, text="Cancel", command=deleter.destroy).grid(row=1, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Cancel", command=deleter.destroy)).grid(row=1, column=3, padx=5, pady=5)
     #Select All button
-    Button(botFrame, text="Select All", command=selectAll).grid(row=1, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Select All", command=selectAll)).grid(row=1, column=0, padx=5, pady=5)
     #Deselect All button
-    Button(botFrame, text="Deselect All", command=deselectAll).grid(row=1, column=1, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Deselect All", command=deselectAll)).grid(row=1, column=1, padx=5, pady=5)
 
     deleter.update_idletasks()
     deleter.minsize(width=max(deleter.winfo_reqwidth(),300), height=max(deleter.winfo_reqheight(),200))
@@ -872,21 +874,21 @@ def changeView():
         return
     
     #setup the new menu
-    view = Toplevel()
+    view = T.apply(Toplevel())
     view.title("Hide/Show Stations")
     view.grab_set() #make window modal
     view.focus_set()
 
-    Label(view, text="Deselected stations will be hidden").pack(side=TOP)
+    T.apply(Label(view, text="Deselected stations will be hidden")).pack(side=TOP)
 
-    topFrame = LabelFrame(view, bd=0)
+    topFrame = T.apply(LabelFrame(view, bd=0))
     topFrame.pack(side=TOP)
 
-    botFrame = LabelFrame(view, bd=0)
+    botFrame = T.apply(LabelFrame(view, bd=0))
     botFrame.pack(side=BOTTOM)
 
     #dictionary linking option name to internal index
-    l = {}
+    l = []
     #response list of IntVar()
     r = []
     #list of all checkbuttons
@@ -894,11 +896,13 @@ def changeView():
     #draw the set of checkboxes to the screen
     for i in range(len(tests)):
         option = "Test "+str(tests[i].testNum)+": "+tests[i].name
-        l[option] = i
+        l.append(T.apply(Label(topFrame, text=option)))
         r.append(IntVar())
         r[i].set(tests[i].showTest)
-        c.append(Checkbutton(topFrame, text=option, variable=r[i], onvalue=1, offvalue=0, padx=10))
-        c[i].grid(row=i%10+1, column=int(i/10)+2)
+        c.append(T.apply(Checkbutton(topFrame, text=None, variable=r[i], onvalue=1, offvalue=0, padx=10)))
+
+        l[-1].grid(row=i%10, column=(i//10)*2)
+        c[-1].grid(row=i%10, column=(i//10)*2+1)
         
         if r[i].get() == 1:
             c[i].select()
@@ -922,13 +926,13 @@ def changeView():
             c[i].deselect()
             
     #cancel button
-    Button(botFrame, text="Cancel", command=view.destroy).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Cancel", command=view.destroy).grid(row=0, column=3, padx=5, pady=5))
     #save button
-    Button(botFrame, text="Save", command=save).grid(row=0, column=2, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Save", command=save).grid(row=0, column=2, padx=5, pady=5))
     #Select All button
-    Button(botFrame, text="Select All", command=selectAll).grid(row=0, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Select All", command=selectAll).grid(row=0, column=0, padx=5, pady=5))
     #Deselect All button
-    Button(botFrame, text="Deselect All", command=deselectAll).grid(row=0, column=1, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Deselect All", command=deselectAll).grid(row=0, column=1, padx=5, pady=5))
 
     view.update_idletasks()
     view.minsize(width=max(view.winfo_reqwidth(),300), height=max(view.winfo_reqheight(),200))
@@ -937,21 +941,21 @@ def changeView():
 def writeToFile():
     global tests
     #setup the new menu
-    writer = Toplevel()
+    writer = T.apply(Toplevel())
     writer.title("Write To File")
     writer.grab_set() #make window modal
     writer.focus_set()
 
-    topFrame = LabelFrame(writer, bd=0)
+    T.apply(Label(writer, text="Selected stations will appear on the file")).pack(side=TOP)
+
+    topFrame = T.apply(LabelFrame(writer, bd=0))
     topFrame.pack(side=TOP)
 
-    botFrame = LabelFrame(writer, bd=0)
+    botFrame = T.apply(LabelFrame(writer, bd=0))
     botFrame.pack(side=BOTTOM)
     
-    Label(topFrame, text="Selected stations will appear on the file").grid(row=1, column=0, columnspan=25)
-    
     #dictionary linking option name to internal index
-    l = {}
+    l = []
     #response list of IntVar()
     r = []
     #list of all checkbuttons
@@ -959,18 +963,20 @@ def writeToFile():
     #draw the set of checkboxes to the screen
     for i in range(len(tests)):
         option = "Station "+str(tests[i].testNum)+": "+tests[i].name
-        l[option] = i
+        l.append(T.apply(Label(topFrame, text=option)))
         r.append(IntVar())
         r[i].set(tests[i].showTest)
-        c.append(Checkbutton(topFrame, text=option, variable=r[i], onvalue=1, offvalue=0, padx=10))
-        c[i].grid(row=i%10+2, column=int(i/10))
+        c.append(T.apply(Checkbutton(topFrame, text=None, variable=r[i], onvalue=1, offvalue=0, padx=10)))
+
+        l[-1].grid(row=i%10, column=(i//10)*2)
+        c[-1].grid(row=i%10, column=(i//10)*2+1)
         
         if r[i].get() == 1:
             c[i].select()
 
     ctVar = BooleanVar()
-    commentToggle = Checkbutton(topFrame, text = "Include Comments?", variable = ctVar, onvalue=1, offvalue=0, padx=0)
-    commentToggle.grid(row=0, column=0, columnspan=25)
+    commentToggle = T.apply(Checkbutton(writer, text = "Include Comments?", variable = ctVar, onvalue=1, offvalue=0, padx=0))
+    commentToggle.pack(side=BOTTOM)
     commentToggle.select()
         
     #writes specified info to file
@@ -1008,13 +1014,13 @@ def writeToFile():
             c[i].deselect()
             
     #cancel button
-    Button(botFrame, text="Cancel", command=writer.destroy).grid(row=2, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Cancel", command=writer.destroy)).grid(row=2, column=3, padx=5, pady=5)
     #save button
-    Button(botFrame, text="Save As", command=save).grid(row=2, column=2, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Save As", command=save)).grid(row=2, column=2, padx=5, pady=5)
     #Select All button
-    Button(botFrame, text="Select All", command=selectAll).grid(row=2, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Select All", command=selectAll)).grid(row=2, column=0, padx=5, pady=5)
     #Deselect All button
-    Button(botFrame, text="Deselect All", command=deselectAll).grid(row=2, column=1, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Deselect All", command=deselectAll)).grid(row=2, column=1, padx=5, pady=5)
 
     #set window minimum size
     writer.update_idletasks()
@@ -1027,12 +1033,12 @@ def lockDisplay():
     global passLocked
     global password
     #setup the new menu
-    locker = Toplevel()
+    locker = T.apply(Toplevel())
     locker.title("Lock Display")
     locker.grab_set() #make window modal
     locker.focus_set()
     
-    passEntry = Entry(locker)
+    passEntry = T.apply(Entry(locker))
     passEntry.grid(row=0, column=1, padx=5, pady=5)
     
     def lockWithPass():
@@ -1058,10 +1064,10 @@ def lockDisplay():
         locker.destroy()
 
     #drawing locker controls
-    Label(locker, text="Enter Password:").grid(row=0, column=0, padx=5, pady=5)   
-    Button(locker, text = "Lock with Password", command=lockWithPass).grid(row=1, column=0, padx=5, pady=5)
-    Button(locker, text = "Lock without Password", command=lockWithoutPass).grid(row=1, column=1, padx=5, pady=5)
-    Button(locker, text = "Cancel", command=cancel).grid(row=1, column=2, padx=5, pady=5)
+    T.apply(Label(locker, text="Enter Password:")).grid(row=0, column=0, padx=5, pady=5)   
+    T.apply(Button(locker, text = "Lock with Password", command=lockWithPass)).grid(row=1, column=1, padx=5, pady=5)
+    T.apply(Button(locker, text = "Lock without Password", command=lockWithoutPass)).grid(row=1, column=0, padx=5, pady=5)
+    T.apply(Button(locker, text = "Cancel", command=cancel)).grid(row=1, column=2, padx=5, pady=5)
 
     #set window minimum size
     locker.update_idletasks()
@@ -1078,12 +1084,12 @@ def unlockDisplay():
         update()
     else:
         #setup the new menu
-        unlocker = Toplevel(padx=10)
+        unlocker = T.apply(Toplevel(padx=10))
         unlocker.title("Unlock Display")
         unlocker.grab_set() #make window modal
         unlocker.focus_set()
         
-        passEntry = Entry(unlocker, show="*")
+        passEntry = T.apply(Entry(unlocker, show="*"))
         passEntry.grid(row=0, column=1, padx=5, pady=5)
 
         def unlock():
@@ -1104,14 +1110,15 @@ def unlockDisplay():
             return
 
         #draw unlocker controls
-        Label(unlocker, text="Enter Password:").grid(row=0, column=0, padx=5, pady=5)    
-        Button(unlocker, text = "Unlock", command=unlock).grid(row=1, column=0, padx=5, pady=5)
-        Button(unlocker, text = "Cancel", command=cancel).grid(row=1, column=1, padx=5, pady=5)
+        T.apply(Label(unlocker, text="Enter Password:")).grid(row=0, column=0, padx=5, pady=5)   
+        T.apply(Button(unlocker, text = "Unlock", command=unlock)).grid(row=1, column=0, padx=5, pady=5)
+        T.apply(Button(unlocker, text = "Cancel", command=cancel)).grid(row=1, column=1, padx=5, pady=5)
 
         #set window minimum size
         unlocker.update_idletasks()
         unlocker.minsize(width=max(unlocker.winfo_reqwidth(),0), height=max(unlocker.winfo_reqheight(),0))
 
+#TODO: delete this ?????
 #addComment, opens a new dialog which will allow the user to write and save comments for each test
 def addComment():
     global tests
@@ -1121,7 +1128,7 @@ def addComment():
         return
     
     #setup the new menu
-    commenter = Toplevel()
+    commenter = T.apply(Toplevel())
     commenter.title("Add a Comment")
     commenter.grab_set() #make window modal
     commenter.focus_set()
@@ -1165,7 +1172,7 @@ def viewComments():
         return
     
     #setup the new menu
-    commentViewer = Toplevel()
+    commentViewer = T.apply(Toplevel())
     commentViewer.title("View Comments")
     commentViewer.grab_set() #make window modal
     commentViewer.focus_set()
@@ -1209,18 +1216,18 @@ def editControls(initialTestNum=0):
         messagebox.showerror("Power Tools Test Manager", "There are no stations to edit")
         return
     #setup the new menu
-    editor = Toplevel()
+    editor = T.apply(Toplevel())
     editor.title("Label Controls")
     editor.grab_set() #make window modal
     editor.focus_set()
 
-    topFrame = LabelFrame(editor, bd=0)
+    topFrame = T.apply(Frame(editor, bd=0))
     topFrame.pack(side=TOP)
 
-    midFrame = Frame(editor, bd=0)
+    midFrame = T.apply(Frame(editor, bd=0))
     midFrame.pack(side=TOP)
 
-    botFrame = LabelFrame(editor, bd=0)
+    botFrame = T.apply(Frame(editor, bd=0))
     botFrame.pack(side=BOTTOM)
 
     if initialTestNum in testIndexDict:
@@ -1228,14 +1235,14 @@ def editControls(initialTestNum=0):
     else:
         currentTestIndex=-1
     
-    Label(midFrame, text="Enter labels for control buttons").grid(row=2, column=0, columnspan=8)
+    T.apply(Label(midFrame, text="Enter labels for control buttons")).grid(row=2, column=0, columnspan=8)
 
     #Building an array of the interactable objects
     numLabel = []
     controlNameEntries = []
     for ii in range(numberOfControls):
-        numLabel.append(Label(midFrame, text=str(ii+1)))
-        controlNameEntries.append(Entry(midFrame))
+        numLabel.append(T.apply(Label(midFrame, text=str(ii+1))))
+        controlNameEntries.append(T.apply(Entry(midFrame)))
 
         numLabel[ii].grid(row=(ii%16+3), column=(int(ii/16)*4))
         controlNameEntries[ii].grid(row=(ii%16+3), column=(int(ii/16)*4+1), padx=5)
@@ -1270,19 +1277,19 @@ def editControls(initialTestNum=0):
             saveButton.config(state=DISABLED, command=None)
 
     #draw test chooser dropdown
-    dropdown = Menubutton(topFrame, text="[default]", relief=RAISED)
-    dropdown.menu = Menu(dropdown, tearoff=0)
+    dropdown = T.apply(Menubutton(topFrame, text="[default]", relief=RAISED))
+    dropdown.menu = T.apply(Menu(dropdown, tearoff=0))
     dropdown["menu"] = dropdown.menu
     for ii in range(len(tests)):
         dropdown.menu.add_command(label=("Station "+str(tests[ii].testNum)+": "+tests[ii].name), command=lambda x=ii: select(x))
     dropdown.grid()
     
     #save button
-    saveButton = Button(botFrame, text="Save Changes", command=save)
+    saveButton = T.apply(Button(botFrame, text="Save Changes", command=save))
     saveButton.grid(row=0, column=2, padx=5, pady=5)
 
     #cancel button
-    Button(botFrame, text="Cancel", command=editor.destroy).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Cancel", command=editor.destroy)).grid(row=0, column=3, padx=5, pady=5)
 
     #populate fields for the first time
     select(currentTestIndex)
@@ -1291,7 +1298,7 @@ def editControls(initialTestNum=0):
     editor.update_idletasks()
     editor.minsize(width=max(editor.winfo_reqwidth(),300), height=max(editor.winfo_reqheight(),200))
 
-
+#TODO: document, add button to go to editor
 def openControls(InitialTestNum=0):
     global tests
     global testIndexDict
@@ -1302,18 +1309,18 @@ def openControls(InitialTestNum=0):
         messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
         return
     #setup the new menu
-    tl = Toplevel()
+    tl = T.apply(Toplevel())
     tl.title("Label Controls")
     tl.grab_set() #make window modal
     tl.focus_set()
 
-    topFrame = Frame(tl, bd=0)
+    topFrame = T.apply(Frame(tl, bd=0))
     topFrame.pack(side=TOP)
 
-    midFrame = Frame(tl, bd=0)
+    midFrame = T.apply(Frame(tl, bd=0))
     midFrame.pack(side=TOP)
 
-    botFrame = Frame(tl, bd=0)
+    botFrame = T.apply(Frame(tl, bd=0))
     botFrame.pack(side=BOTTOM)
 
     if InitialTestNum in testIndexDict:
@@ -1326,9 +1333,9 @@ def openControls(InitialTestNum=0):
     controlButtons = []
     controlNameLabels = []
     for ii in range(numberOfControls):
-        numLabel.append(Label(midFrame, text=str(ii+1)))
-        controlButtons.append(Button(midFrame, width=8))
-        controlNameLabels.append(Label(midFrame, width=10, bg="WHITE", justify=LEFT))
+        numLabel.append(T.apply(Label(midFrame, text=str(ii+1))))
+        controlButtons.append(T.apply(Button(midFrame, width=8)))
+        controlNameLabels.append(Label(midFrame, width=10, bg=T.contrastbg, fg=T.contrastfg, selectbackground=T.selectbg, selectforeground=T.selectfg, font=(T.font, T.fontSize), justify=LEFT))
 
         numLabel[ii].grid(row=(ii%16+3), column=(int(ii/16)*4))
         controlButtons[ii].grid(row=(ii%16+3), column=(int(ii/16)*4+1))
@@ -1340,7 +1347,7 @@ def openControls(InitialTestNum=0):
         update(currentTestIndex)
 
 
-    dropdown = Menubutton(topFrame, text="[default]", relief=RAISED)
+    dropdown = T.apply(Menubutton(topFrame, text="[default]", relief=RAISED))
     def update(testIndex):
         nonlocal currentTestIndex
         currentTestIndex=testIndex
@@ -1368,7 +1375,7 @@ def openControls(InitialTestNum=0):
     
         
 
-    dropdown.menu = Menu(dropdown, tearoff=0)
+    dropdown.menu = T.apply(Menu(dropdown, tearoff=0))
     dropdown["menu"] = dropdown.menu
     for ii in range(len(tests)):
         dropdown.menu.add_command(label=("Station "+str(tests[ii].testNum)+": "+tests[ii].name), command=lambda x=ii: update(x))
@@ -1377,10 +1384,10 @@ def openControls(InitialTestNum=0):
     update(currentTestIndex)
 
     #refresh button
-    Button(botFrame, text="Refresh", command=lambda: update(currentTestIndex)).grid(row=0, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Refresh", command=lambda: update(currentTestIndex))).grid(row=0, column=0, padx=5, pady=5)
 
     #cancel button
-    Button(botFrame, text="Close", command=tl.destroy).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Close", command=tl.destroy)).grid(row=0, column=3, padx=5, pady=5)
     
     #set min window size
     tl.update_idletasks()
@@ -1416,7 +1423,7 @@ def theme():
             newTheme.fg="black"
             newTheme.contrastbg="white"
             newTheme.contrastfg="black"
-            newTheme.selectbg="#00adef"
+            newTheme.selectbg="#00a2ed"
             newTheme.selectfg="white"
         elif colorsVar.get() == "Monochrome":
             newTheme.bg="white"
@@ -1553,7 +1560,40 @@ pauseAllButton.grid(row=0, column=0)
 resumeAllButton = Button(botControl, text="Resume All Tests", command=resumeAll)
 resumeAllButton.grid(row=0, column=1)
 
+menubar = Menu(root)
 
+fileMenu = Menu(menubar, tearoff=0)
+fileMenu.add_command(label="Save Session", command=saveSession)
+fileMenu.add_command(label="Open Session", command=openSession)
+fileMenu.add_command(label="Connect to Port", command=connect)
+fileMenu.add_command(label="Write to File", command=writeToFile)
+fileMenu.add_command(label="Exit", command=exitProgram)
+menubar.add_cascade(label="File", menu=fileMenu)
+
+functionsMenu = Menu(menubar, tearoff=0)
+functionsMenu.add_command(label="Edit Stations", command=editTests)
+functionsMenu.add_command(label="Add Station", command=addTest)
+functionsMenu.add_command(label="Delete Station", command=deleteTest)
+functionsMenu.add_command(label="Label Controls", command=editControls)
+menubar.add_cascade(label="Edit", menu=functionsMenu)
+
+viewMenu = Menu(menubar, tearoff=0)
+viewMenu.add_command(label="Hide/Show Stations", command=changeView)
+viewMenu.add_command(label="Theme", command=theme)
+viewMenu.add_command(label="Lock Display", command=lockDisplay)
+menubar.add_cascade(label="View", menu=viewMenu)
+
+controlsMenu = Menu(menubar, tearoff=0)
+controlsMenu.add_command(label="Pause/Resume")
+controlsMenu.add_command(label="More Controls", command=openControls)
+menubar.add_cascade(label="Control Tests", menu=controlsMenu)
+
+testCommentsMenu = Menu(menubar, tearoff=0)
+testCommentsMenu.add_command(label="Add a Comment", command=addComment)
+testCommentsMenu.add_command(label="View Comments", command=viewComments)
+menubar.add_cascade(label="Test Comments", menu=testCommentsMenu)
+
+root.config(menu=menubar)
 
 #Draws the screen with the current parameters
 def update():
@@ -1577,77 +1617,53 @@ def update():
             tests[i].draw(int(placer/10)+1, placer%10)
             placer += 1
     
-    #TODO: change so that the menu isn't recreated every time update() is called
+    #TODO: fix how disabled options appear
     if not locked:
-        menubar = Menu(root)
+        fileMenu.entryconfig(0, label="Save Session", command=saveSession, state=NORMAL)
+        fileMenu.entryconfig(1, label="Open Session", command=openSession, state=NORMAL)
+        fileMenu.entryconfig(2, label="Connect to Port", command=connect, state=NORMAL)
+        fileMenu.entryconfig(3, label="Write to File", command=writeToFile, state=NORMAL)
+        fileMenu.entryconfig(4, label="Exit", command=exitProgram, state=NORMAL)
         
-        file = Menu(menubar, tearoff=0)
-        file.add_command(label="Save Session", command=saveSession)
-        file.add_command(label="Open Session", command=openSession)
-        file.add_command(label="Connect to Port", command=connect)
-        file.add_command(label="Write to File", command=writeToFile)
-        file.add_command(label="Exit", command=exitProgram)
-        menubar.add_cascade(label="File", menu=file)
-
-        functions = Menu(menubar, tearoff=0)
-        functions.add_command(label="Edit Stations", command=editTests)
-        functions.add_command(label="Add Station", command=addTest)
-        functions.add_command(label="Delete Station", command=deleteTest)
-        functions.add_command(label="Label Controls", command=editControls)
-        menubar.add_cascade(label="Edit", menu=functions)
-
-        view = Menu(menubar, tearoff=0)
-        view.add_command(label="Hide/Show Stations", command=changeView)
-        view.add_command(label="Theme", command=theme)
-        view.add_command(label="Lock Display", command=lockDisplay)
-        menubar.add_cascade(label="View", menu=view)
-
-        controls = Menu(menubar, tearoff=0)
-        controls.add_command(label="Pause/Resume")
-        controls.add_command(label="More Controls", command=openControls)
-        menubar.add_cascade(label="Control Tests", menu=controls)
+        functionsMenu.entryconfig(0, label="Edit Stations", command=editTests, state=NORMAL)
+        functionsMenu.entryconfig(1, label="Add Station", command=addTest, state=NORMAL)
+        functionsMenu.entryconfig(2, label="Delete Station", command=deleteTest, state=NORMAL)
+        functionsMenu.entryconfig(3, label="Label Controls", command=editControls, state=NORMAL)
         
-        testComments = Menu(menubar, tearoff=0)
-        testComments.add_command(label="Add a Comment", command=addComment)
-        testComments.add_command(label="View Comments", command=viewComments)
-        menubar.add_cascade(label="Test Comments", menu=testComments)
+        viewMenu.entryconfig(0, label="Hide/Show Stations", command=changeView, state=NORMAL)
+        viewMenu.entryconfig(1, label="Theme", command=theme, state=NORMAL)
+        viewMenu.entryconfig(2, label="Lock Display", command=lockDisplay, state=NORMAL)
+        
+        controlsMenu.entryconfig(0, label="Pause/Resume", state=NORMAL) #TODO
+        controlsMenu.entryconfig(1, label="More Controls", command=openControls, state=NORMAL)
+        
+        testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment, state=NORMAL)
+        testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments, state=NORMAL)
+        
     else:
-        menubar = Menu(root)
+        fileMenu.entryconfig(0, label="Save Session", command=saveSession)
+        fileMenu.entryconfig(1, label="Open Session", state=DISABLED)
+        fileMenu.entryconfig(2, label="Connect to Port", state=DISABLED)
+        fileMenu.entryconfig(3, label="Write to File", command=writeToFile)
+        fileMenu.entryconfig(4, label="Exit", command=exitProgram)
         
-        file = Menu(menubar, tearoff=0)
-        file.add_command(label="Save Session", command=saveSession)
-        file.add_command(label="Open Session", state=DISABLED)
-        file.add_command(label="Connect to Port", state=DISABLED)
-        file.add_command(label="Write to File", command=writeToFile)
-        file.add_command(label="Exit", command=exitProgram)
-        menubar.add_cascade(label="File", menu=file)
+        functionsMenu.entryconfig(0, label="Edit Stations", state=DISABLED)
+        functionsMenu.entryconfig(1, label="Add Station", state=DISABLED)
+        functionsMenu.entryconfig(2, label="Delete Station", state=DISABLED)
+        functionsMenu.entryconfig(3, label="Label Controls", state=DISABLED)
+        
+        viewMenu.entryconfig(0, label="Hide/Show Stations", state=DISABLED)
+        viewMenu.entryconfig(1, label="Theme", command=theme)
+        viewMenu.entryconfig(2, label="Unlock Display", command=unlockDisplay)
+        
+        controlsMenu.entryconfig(0, label="Pause/Resume", state=DISABLED)
+        controlsMenu.entryconfig(1, label="More Controls", state=DISABLED)
+        
+        testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment)
+        testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments)
+        
 
-        functions = Menu(menubar, tearoff=0)
-        functions.add_command(label="Edit Stations", state=DISABLED)
-        functions.add_command(label="Add Station", state=DISABLED)
-        functions.add_command(label="Delete Station", state=DISABLED)
-        functions.add_command(label="Label Controls", state=DISABLED)
-        menubar.add_cascade(label="Edit", menu=functions)
-
-        view = Menu(menubar, tearoff=0)
-        view.add_command(label="Hide/Show Stations", state=DISABLED)
-        view.add_command(label="Theme", command=theme)
-        view.add_command(label="Unlock Display", command=unlockDisplay)
-        menubar.add_cascade(label="View", menu=view)
-        
-        controls = Menu(menubar, tearoff=0)
-        controls.add_command(label="Pause/Resume", state=DISABLED)
-        controls.add_command(label="More Controls", state=DISABLED)
-        menubar.add_cascade(label="Control Tests", menu=controls)
-        
-        testComments = Menu(menubar, tearoff=0)
-        testComments.add_command(label="Add a Comment", command=addComment)
-        testComments.add_command(label="View Comments", command=viewComments)
-        menubar.add_cascade(label="Test Comments", menu=testComments)
-        
-    root.config(menu=menubar)
-
-    T.apply([menubar, file, functions, view, controls, testComments])
+    T.apply([fileMenu, functionsMenu, viewMenu, controlsMenu, testCommentsMenu])
     
     if locked or len(tests) == 0:
         pauseAllButton.config(state=DISABLED)
