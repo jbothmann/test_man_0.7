@@ -63,7 +63,6 @@ class Theme:
         self.font = font
 
     #Theme.apply, passing this method a common widget will automatically reconfigure its color and font to fit the theme
-    #TODO: add menubutton and menu
     def apply(self, widget):
         if isinstance(widget, list):  #if passed a list of widgets, recursively handle all widgets
             for oo in widget:
@@ -192,7 +191,7 @@ class Test:
         #apply theme to all widgets
         T.apply([self.labelWidgetFrame, self.stationNumLabel, self.button0, self.frame, self.dataLabel, self.statusIndicator, self.button1, self.button2])
 
-        self.stationNumLabel.config(text="Station " + str(self.testNum))
+        self.stationNumLabel.config(text="Station " + str(self.testNum), font=(T.font, T.fontSize+2))
         self.frame.grid(row=r, column=c, pady=3, padx=3) #regrid the frame
 
         #add correct information to widgets
@@ -252,7 +251,7 @@ class Test:
             self.status = "Paused"
             self.updateLabel()
 
-    def setStopped(self):
+    def setStopped(self): #unused state
         if not self.status == "Stopped":
             self.status = "Stopped"
             self.updateLabel()
@@ -514,7 +513,6 @@ def editTests(initialTestNum=0):
     editor.title("Edit Stations")
     editor.grab_set() #make window modal
     editor.focus_set()
-    
 
     topFrame = T.apply(Frame(editor, bd=0))
     topFrame.pack(side=TOP)
@@ -525,6 +523,7 @@ def editTests(initialTestNum=0):
     botFrame = T.apply(Frame(editor, bd=0))
     botFrame.pack(side=BOTTOM)
 
+    #find the index associated with the given testNum, or resolve to a default value otherwise
     if initialTestNum in testIndexDict:
         currentTestIndex=testIndexDict[initialTestNum]
     else:
@@ -563,8 +562,6 @@ def editTests(initialTestNum=0):
         unitEntries[ii].grid(row=(ii%16+3), column=(int(ii/16)*4+2), padx=0)
         showEntry[ii].grid(row=(ii%16+3), column=(int(ii/16)*4+3))
 
-    
-
     def save():
         tests[currentTestIndex].testNum = int(slaveAddressEntry.get()) 
         tests[currentTestIndex].name = nameEntry.get()
@@ -574,8 +571,11 @@ def editTests(initialTestNum=0):
             tests[currentTestIndex].data[ii][1] = unitEntries[ii].get()
             tests[currentTestIndex].data[ii][3] = bool(showEntryVar[ii].get())
         update()
+        #messagebox.showinfo("Power Tools Test Manager", "Changes Saved") #TODO: indicate that changes have been made in an unobtrusive way
+
+    def saveAndClose():
+        save()
         editor.destroy()
-        return
     
     #select, fills fields with existing info when a test is selected 
     def select(testIndex):
@@ -611,6 +611,7 @@ def editTests(initialTestNum=0):
                     showEntry[ii].deselect()
 
             saveButton.config(state=NORMAL)
+            saveAndCloseButton.config(state=NORMAL)
             selectAllButton.config(state=NORMAL)
             deselectAllButton.config(state=NORMAL)
         else:
@@ -632,6 +633,7 @@ def editTests(initialTestNum=0):
                 showEntry[ii].config(state=DISABLED)
 
             saveButton.config(state=DISABLED)
+            saveAndCloseButton.config(state=DISABLED)
             selectAllButton.config(state=DISABLED)
             deselectAllButton.config(state=DISABLED)
             
@@ -657,11 +659,15 @@ def editTests(initialTestNum=0):
     dropdown.grid(row=0, column=2, pady=5, padx=10)
 
     #save button
-    saveButton = T.apply(Button(botFrame, text="Save Changes", command=save))
+    saveButton = T.apply(Button(botFrame, text="Apply Changes", command=save))
     saveButton.grid(row=0, column=2, padx=5, pady=5)
 
+    #save button
+    saveAndCloseButton = T.apply(Button(botFrame, text="Save and Close", command=saveAndClose))
+    saveAndCloseButton.grid(row=0, column=3, padx=5, pady=5)
+
     #cancel button
-    T.apply(Button(botFrame, text="Cancel", command=editor.destroy)).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Close", command=editor.destroy)).grid(row=0, column=4, padx=5, pady=5)
 
     #Select All button
     selectAllButton = T.apply(Button(botFrame, text="Select All", command=selectAll))
@@ -1026,6 +1032,7 @@ def writeToFile():
     writer.update_idletasks()
     writer.minsize(width=max(writer.winfo_reqwidth(),300), height=max(writer.winfo_reqheight(),200))
 
+#TODO: split into two separate menu options
 #lockDisplay, will make most functions and buttons unusable
 #can either be protected with a password, or unprotected
 def lockDisplay():
@@ -1210,6 +1217,8 @@ def viewComments():
     commentViewer.update_idletasks()
     commentViewer.minsize(width=max(commentViewer.winfo_reqwidth(),260), height=max(commentViewer.winfo_reqheight(),60))
     
+#editControls():  presents the user with a window where they can assign labels to the PLC's control coils for each station.
+#if given a valid TestNum from an existing station, the window will start with that station selected
 def editControls(initialTestNum=0):
     global tests
     if len(tests) == 0:
@@ -1252,11 +1261,13 @@ def editControls(initialTestNum=0):
         for ii in range(numberOfControls):
             tests[currentTestIndex].controlLabels[ii] = controlNameEntries[ii].get()
         #update()
+        
+    def saveAndClose():
+        save()
         editor.destroy()
-        return
 
     
-    #select, fills fields with existing info when a test is selected 
+    #select, fills fields with existing info when a test is selected.  If a negative index is passed, the window will be populated with a default selection
     def select(testIndex):
         global tests
         nonlocal currentTestIndex
@@ -1264,6 +1275,8 @@ def editControls(initialTestNum=0):
         if (currentTestIndex >= 0):
             dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name))
             saveButton.config(state=NORMAL, command=save)
+            saveAndCloseButton.config(state=NORMAL)
+
             for ii in range(numberOfControls):
                 controlNameEntries[ii].config(state=NORMAL)
                 controlNameEntries[ii].delete(0, END)
@@ -1274,7 +1287,8 @@ def editControls(initialTestNum=0):
                 controlNameEntries[ii].delete(0, END)
                 controlNameEntries[ii].config(state=DISABLED)
 
-            saveButton.config(state=DISABLED, command=None)
+            saveButton.config(state=DISABLED)
+            saveAndCloseButton.config(state=DISABLED)
 
     #draw test chooser dropdown
     dropdown = T.apply(Menubutton(topFrame, text="[default]", relief=RAISED))
@@ -1285,11 +1299,15 @@ def editControls(initialTestNum=0):
     dropdown.grid()
     
     #save button
-    saveButton = T.apply(Button(botFrame, text="Save Changes", command=save))
+    saveButton = T.apply(Button(botFrame, text="Apply Changes", command=save))
     saveButton.grid(row=0, column=2, padx=5, pady=5)
 
+    #save and close button
+    saveAndCloseButton = T.apply(Button(botFrame, text="Save and Close", command=saveAndClose))
+    saveAndCloseButton.grid(row=0, column=3, padx=5, pady=5)
+
     #cancel button
-    T.apply(Button(botFrame, text="Cancel", command=editor.destroy)).grid(row=0, column=3, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Cancel", command=editor.destroy)).grid(row=0, column=4, padx=5, pady=5)
 
     #populate fields for the first time
     select(currentTestIndex)
@@ -1298,7 +1316,10 @@ def editControls(initialTestNum=0):
     editor.update_idletasks()
     editor.minsize(width=max(editor.winfo_reqwidth(),300), height=max(editor.winfo_reqheight(),200))
 
-#TODO: document, add button to go to editor
+#TODO: add button to go to editor
+#openControls(): This function opens a new child window which will allow the user to see the status of the selected station's
+#control coils, and toggle them on or off
+#if given a valid TestNum from an existing station, the window will start with that station selected
 def openControls(InitialTestNum=0):
     global tests
     global testIndexDict
@@ -1348,10 +1369,13 @@ def openControls(InitialTestNum=0):
 
 
     dropdown = T.apply(Menubutton(topFrame, text="[default]", relief=RAISED))
+
+    #update() is called whenever a new selection is made on the dropdown menu.  It reconfigures the window to reflect what wwas chosen.
+    #if update() is passed an invalid index, then it will show a default selection
     def update(testIndex):
         nonlocal currentTestIndex
         currentTestIndex=testIndex
-        if (currentTestIndex>=0):
+        if (currentTestIndex>=0): 
             dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name))
             for ii in range(numberOfControls):
                 controlNameLabels[ii].config(text=tests[currentTestIndex].controlLabels[ii])
@@ -1361,7 +1385,7 @@ def openControls(InitialTestNum=0):
                     if newData[ii]:         
                         controlButtons[ii].config(text="ON", fg="green", state=NORMAL, command=lambda x=ii: sendCommand(x+1, 0))
                     else:
-                        controlButtons[ii].config(text="OFF", fg="black", state=NORMAL, command=lambda x=ii: sendCommand(x+1, 1))
+                        controlButtons[ii].config(text="OFF", fg=T.fg, state=NORMAL, command=lambda x=ii: sendCommand(x+1, 1))
             else:
                 for ii in range(numberOfControls):
                     controlButtons[ii].config(text="OFFLINE", state=DISABLED, command=None)
@@ -1372,19 +1396,27 @@ def openControls(InitialTestNum=0):
                 controlNameLabels[ii].config(text="")
                 controlButtons[ii].config(text="", state=DISABLED)
 
-    
+    #close the current window and open the control label editor for the selected test
+    def openControlEditor():
+        tl.destroy()
+        if currentTestIndex>=0:
+            editControls(tests[currentTestIndex].testNum)
+        else:
+            editControls()
         
-
+    #create and assign a menu to the dropdown menubutton.  This menu will allow the user to select which station they want to control.
     dropdown.menu = T.apply(Menu(dropdown, tearoff=0))
     dropdown["menu"] = dropdown.menu
     for ii in range(len(tests)):
         dropdown.menu.add_command(label=("Station "+str(tests[ii].testNum)+": "+tests[ii].name), command=lambda x=ii: update(x))
     dropdown.grid()
 
-    update(currentTestIndex)
+    update(currentTestIndex) #populate the screen for the first time
+
+    T.apply(Button(botFrame, text="Edit Labels", command=openControlEditor)).grid(row=0, column=0, padx=5, pady=5)
 
     #refresh button
-    T.apply(Button(botFrame, text="Refresh", command=lambda: update(currentTestIndex))).grid(row=0, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Refresh", command=lambda: update(currentTestIndex))).grid(row=0, column=1, padx=5, pady=5)
 
     #cancel button
     T.apply(Button(botFrame, text="Close", command=tl.destroy)).grid(row=0, column=3, padx=5, pady=5)
@@ -1392,7 +1424,10 @@ def openControls(InitialTestNum=0):
     #set min window size
     tl.update_idletasks()
     tl.minsize(width=max(tl.winfo_reqwidth(),300), height=max(tl.winfo_reqheight(),200))
-    
+
+
+#theme():  This function opens a window that will allow the user to select which colors, font, and text size the program uses
+#As new selections are made, this window will be updated to give the user a preview of the theme they have selected
 def theme():
     global T
     #initialize a new Theme() object based on the current global Theme
@@ -1535,7 +1570,7 @@ def theme():
     saveButton.grid(row=0, column=0, padx=5, pady=5)
 
     #cancel button
-    cancelButton = Button(botFrame, text="Close", command=tl.destroy)
+    cancelButton = Button(botFrame, text="Cancel", command=tl.destroy)
     cancelButton.grid(row=0, column=3, padx=5, pady=5)
 
     #set min window size
