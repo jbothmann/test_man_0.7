@@ -31,7 +31,7 @@ running = True
 #procedure to be taken when attempting to exit the program, which will prompt a save
 def exitProgram():
     global running
-    response = messagebox.askyesnocancel("Power Tools Test Manager", "Save before closing Test Manager?")
+    response = messagebox.askyesnocancel("Power Tools Test Manager", "Save before closing Test Manager?", parent=root.focus_get())
     if not response is None:
         if response:
             saveSession()
@@ -82,7 +82,7 @@ class Theme:
         elif isinstance(widget, Checkbutton) or isinstance(widget, Radiobutton):
             widget.config(bg=self.bg, fg='black', activebackground=self.bg, activeforeground=self.bg, font=(self.font, self.fontSize))
         elif isinstance (widget, Menu):
-            widget.config(bg=self.contrastbg, fg=self.contrastfg, activebackground=self.selectbg, activeforeground=self.selectfg, font=(self.font, self.fontSize))
+            widget.config(bg=self.contrastbg, fg=self.contrastfg, activebackground=self.selectbg, activeforeground=self.selectfg, disabledforeground=None, font=(self.font, self.fontSize))
         return widget
 
 #create a Theme object
@@ -315,7 +315,7 @@ defaultValNames = [
 
 def pause(slID):
     if ser is None:
-        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
     else:
         msg = [
             slID, #slave ID
@@ -332,7 +332,7 @@ def pause(slID):
 
 def resume(slID):
     if ser is None:
-        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
     else:
         msg = [
             slID, #slave ID
@@ -349,7 +349,7 @@ def resume(slID):
 
 def control(slID, controlIndex, value):
     if ser is None:
-        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
     else:
         msg = [
             slID, #slave ID
@@ -366,7 +366,7 @@ def control(slID, controlIndex, value):
 
 def pauseAll():
     if ser is None:
-        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
     else:
         msg = [
             0x00, #address "0" to indicate a broadcast pause
@@ -383,7 +383,7 @@ def pauseAll():
 
 def resumeAll():
     if ser is None:
-        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
     else:
         msg = [
             0x00, #address "0" to indicate a broadcast pause
@@ -403,7 +403,7 @@ def saveSession():
         #open *.JSON file using system dialog
         file = filedialog.asksaveasfile(parent=root, initialdir = "/", title = "Save As", filetypes = (("JSON Files","*.json"),), defaultextension="*.*")
     except OSError as e: #catch errors relating to opening the file
-        messagebox.showerror("Power Tools Test Manager", "Could not save file")
+        messagebox.showerror("Power Tools Test Manager", "Could not save file", parent=root.focus_get())
     else:
         if not file is None:
             testList = []
@@ -419,7 +419,7 @@ def openSession():
         #open *.JSON file using system dialog
         file = filedialog.askopenfile(parent=root, initialdir = "/", title = "Open", filetypes = (("JSON Files","*.json"),))
     except OSError as e: #catch errors relating to opening the file
-        messagebox.showerror("Power Tools Test Manager", "Could not open file")
+        messagebox.showerror("Power Tools Test Manager", "Could not open file", parent=root.focus_get())
     else:
         if not file is None:
             testList = json.load(file)
@@ -476,7 +476,7 @@ def connect():
             ser = serial.Serial(port = 'COM%s' % (currentPort), baudrate=38400, parity=serial.PARITY_ODD, stopbits=serial.STOPBITS_ONE, bytesize=serial.EIGHTBITS, timeout=serTimeout)
             ser.reset_input_buffer()
         except serial.serialutil.SerialException:
-            messagebox.showerror("Power Tools Test Manager", "Could not connect to COM port")
+            messagebox.showerror("Power Tools Test Manager", "Could not connect to COM port", parent=root.focus_get())
         else:
             connector.destroy()
 
@@ -506,7 +506,7 @@ def connect():
 def editTests(initialTestNum=0):
     global tests
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no tests to edit")
+        messagebox.showerror("Power Tools Test Manager", "There are no tests to edit", parent=root.focus_get())
         return
     #setup the new menu
     editor = T.apply(Toplevel())
@@ -571,7 +571,10 @@ def editTests(initialTestNum=0):
             tests[currentTestIndex].data[ii][1] = unitEntries[ii].get()
             tests[currentTestIndex].data[ii][3] = bool(showEntryVar[ii].get())
         update()
-        #messagebox.showinfo("Power Tools Test Manager", "Changes Saved") #TODO: indicate that changes have been made in an unobtrusive way
+
+    def apply():
+        save()
+        messagebox.showinfo("Power Tools Test Manager", "Changes Saved", parent=root.focus_get())
 
     def saveAndClose():
         save()
@@ -658,8 +661,8 @@ def editTests(initialTestNum=0):
         dropdown.menu.add_command(label=("Station "+str(tests[ii].testNum)+": "+tests[ii].name), command=lambda x=ii: select(x))
     dropdown.grid(row=0, column=2, pady=5, padx=10)
 
-    #save button
-    saveButton = T.apply(Button(botFrame, text="Apply Changes", command=save))
+    #save without closing button
+    saveButton = T.apply(Button(botFrame, text="Apply Changes", command=apply))
     saveButton.grid(row=0, column=2, padx=5, pady=5)
 
     #save button
@@ -745,7 +748,7 @@ def addTest():
     showEntry[0].select()
     showEntry[1].select()
 
-    #returns true if the station is added successfully, false otherwise #TODO add confirmation of a successful addition
+    #returns true if the station is added successfully, false otherwise
     def add():
         global tests
         global defaultValNames
@@ -754,7 +757,7 @@ def addTest():
 
             #check for duplicate slave addresses and prompt the user if a duplicate is found
             if testNum>0 and testNum in [oo.testNum for oo in tests]:
-                duplicateOk = messagebox.askyesno("Power Tools Test Manager", "That address is already in use.  Continue?")
+                duplicateOk = messagebox.askyesno("Power Tools Test Manager", "That address is already in use.  Continue?", parent=root.focus_get())
             else:
                 duplicateOk = True
                 
@@ -770,8 +773,12 @@ def addTest():
                 return False
             
         except ValueError as e:
-            messagebox.showerror("Power Tools Test Manager", "Invalid Address")
+            messagebox.showerror("Power Tools Test Manager", "Invalid Address", parent=root.focus_get())
             return False
+
+    def addDontExit():
+        if add():
+            messagebox.showinfo("Power Tools Test Manager", "Test Added", parent=root.focus_get())
 
     def addAndExit():
         if add():
@@ -789,7 +796,7 @@ def addTest():
             showEntry[i].deselect()
     
     #save button
-    T.apply(Button(botFrame, text="Add Station", command = add)).grid(row=0, column=2, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Add Station", command = addDontExit)).grid(row=0, column=2, padx=5, pady=5)
     #save button
     T.apply(Button(botFrame, text="Add and Close", command = addAndExit)).grid(row=0, column=3, padx=5, pady=5)
     #cancel button
@@ -808,7 +815,7 @@ def deleteTest():
     global tests
 
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no tests to delete")
+        messagebox.showerror("Power Tools Test Manager", "There are no tests to delete", parent=root.focus_get())
         return
     
     #setup the new menu
@@ -876,7 +883,7 @@ def changeView():
     global tests
 
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no stations to show")
+        messagebox.showerror("Power Tools Test Manager", "There are no stations to show", parent=root.focus_get())
         return
     
     #setup the new menu
@@ -991,7 +998,7 @@ def writeToFile():
             #open *.txt file using system dialog
             file = filedialog.asksaveasfile(parent=writer, initialdir = "/", title = "Save As", filetypes = (("Text Files","*.txt"),), defaultextension="*.*")
         except OSError as e: #catch errors relating to opening the file
-            messagebox.showerror("Power Tools Test Manager", "Could not open file")
+            messagebox.showerror("Power Tools Test Manager", "Could not open file", parent=root.focus_get())
         else:
             if not file is None:
                 file.write("Snap-On Test Manager, Version "+version+"\n")
@@ -1110,7 +1117,7 @@ def unlockDisplay():
                 update()
                 unlocker.destroy()
             else:
-                messagebox.showerror("Power Tools Test Manager", "Incorrect password")
+                messagebox.showerror("Power Tools Test Manager", "Incorrect password", parent=root.focus_get())
             
         def cancel():
             unlocker.destroy()
@@ -1131,7 +1138,7 @@ def addComment():
     global tests
     
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no tests to add a comment to")
+        messagebox.showerror("Power Tools Test Manager", "There are no tests to add a comment to", parent=root.focus_get())
         return
     
     #setup the new menu
@@ -1175,7 +1182,7 @@ def viewComments():
     global allComments
 
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no stations to view")
+        messagebox.showerror("Power Tools Test Manager", "There are no stations to view", parent=root.focus_get())
         return
     
     #setup the new menu
@@ -1222,7 +1229,7 @@ def viewComments():
 def editControls(initialTestNum=0):
     global tests
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no stations to edit")
+        messagebox.showerror("Power Tools Test Manager", "There are no stations to edit", parent=root.focus_get())
         return
     #setup the new menu
     editor = T.apply(Toplevel())
@@ -1261,6 +1268,10 @@ def editControls(initialTestNum=0):
         for ii in range(numberOfControls):
             tests[currentTestIndex].controlLabels[ii] = controlNameEntries[ii].get()
         #update()
+
+    def apply():
+        save()
+        messagebox.showinfo("Power Tools Test Manager", "Changes Saved", parent=root.focus_get())
         
     def saveAndClose():
         save()
@@ -1299,7 +1310,7 @@ def editControls(initialTestNum=0):
     dropdown.grid()
     
     #save button
-    saveButton = T.apply(Button(botFrame, text="Apply Changes", command=save))
+    saveButton = T.apply(Button(botFrame, text="Apply Changes", command=apply))
     saveButton.grid(row=0, column=2, padx=5, pady=5)
 
     #save and close button
@@ -1316,7 +1327,7 @@ def editControls(initialTestNum=0):
     editor.update_idletasks()
     editor.minsize(width=max(editor.winfo_reqwidth(),300), height=max(editor.winfo_reqheight(),200))
 
-#TODO: add button to go to editor
+#TODO: add button to go to editor TODO test this functionality
 #openControls(): This function opens a new child window which will allow the user to see the status of the selected station's
 #control coils, and toggle them on or off
 #if given a valid TestNum from an existing station, the window will start with that station selected
@@ -1324,10 +1335,10 @@ def openControls(InitialTestNum=0):
     global tests
     global testIndexDict
     if len(tests) == 0:
-        messagebox.showerror("Power Tools Test Manager", "There are no stations to control")
+        messagebox.showerror("Power Tools Test Manager", "There are no stations to control", parent=root.focus_get())
         return
     if ser is None:
-        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port")
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
         return
     #setup the new menu
     tl = T.apply(Toplevel())
@@ -1652,7 +1663,7 @@ def update():
             tests[i].draw(int(placer/10)+1, placer%10)
             placer += 1
     
-    #TODO: fix how disabled options appear
+    
     if not locked:
         fileMenu.entryconfig(0, label="Save Session", command=saveSession, state=NORMAL)
         fileMenu.entryconfig(1, label="Open Session", command=openSession, state=NORMAL)
@@ -1972,7 +1983,7 @@ while(running): #root.state() == 'normal'):
                 retryCount = 0
                 for oo in tests:
                     oo.setOffline()
-                messagebox.showerror("Power Tools Test Manager", "Serial Port Disconnected")
+                messagebox.showerror("Power Tools Test Manager", "Serial Port Disconnected", parent=root.focus_get())
         if retryCount >= 3: #If the same test has been polled three times, with no response or bad responses, set the test as offline and continue
             if currTestPoll < len(tests):
                 tests[currTestPoll].setOffline()
