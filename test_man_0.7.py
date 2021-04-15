@@ -1132,7 +1132,6 @@ def unlockDisplay():
         unlocker.update_idletasks()
         unlocker.minsize(width=max(unlocker.winfo_reqwidth(),0), height=max(unlocker.winfo_reqheight(),0))
 
-#TODO: delete this ?????
 #addComment, opens a new dialog which will allow the user to write and save comments for each test
 def addComment():
     global tests
@@ -1327,7 +1326,6 @@ def editControls(initialTestNum=0):
     editor.update_idletasks()
     editor.minsize(width=max(editor.winfo_reqwidth(),300), height=max(editor.winfo_reqheight(),200))
 
-#TODO: add button to go to editor TODO test this functionality
 #openControls(): This function opens a new child window which will allow the user to see the status of the selected station's
 #control coils, and toggle them on or off
 #if given a valid TestNum from an existing station, the window will start with that station selected
@@ -1367,7 +1365,7 @@ def openControls(InitialTestNum=0):
     for ii in range(numberOfControls):
         numLabel.append(T.apply(Label(midFrame, text=str(ii+1))))
         controlButtons.append(T.apply(Button(midFrame, width=8)))
-        controlNameLabels.append(Label(midFrame, width=10, bg=T.contrastbg, fg=T.contrastfg, selectbackground=T.selectbg, selectforeground=T.selectfg, font=(T.font, T.fontSize), justify=LEFT))
+        controlNameLabels.append(Label(midFrame, width=10, bg=T.contrastbg, fg=T.contrastfg, font=(T.font, T.fontSize), justify=LEFT))
 
         numLabel[ii].grid(row=(ii%16+3), column=(int(ii/16)*4))
         controlButtons[ii].grid(row=(ii%16+3), column=(int(ii/16)*4+1))
@@ -1390,17 +1388,25 @@ def openControls(InitialTestNum=0):
             dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name))
             for ii in range(numberOfControls):
                 controlNameLabels[ii].config(text=tests[currentTestIndex].controlLabels[ii])
-            retSuccess, newData = retrieveControlStatus(tests[currentTestIndex].testNum)
-            if retSuccess:
-                for ii in range(numberOfControls):
-                    if newData[ii]:         
-                        controlButtons[ii].config(text="ON", fg="green", state=NORMAL, command=lambda x=ii: sendCommand(x+1, 0))
-                    else:
-                        controlButtons[ii].config(text="OFF", fg=T.fg, state=NORMAL, command=lambda x=ii: sendCommand(x+1, 1))
-            else:
-                for ii in range(numberOfControls):
-                    controlButtons[ii].config(text="OFFLINE", state=DISABLED, command=None)
-                #TODO: multiple tries?
+
+            retryCount = 0
+            done = False
+            while not done:  #If the data retrieval is unsuccessful, Try three times before showing that the PLC is offline
+                retSuccess, newData = retrieveControlStatus(tests[currentTestIndex].testNum)
+                if retSuccess:  #The data retrieval has been successful.  Exit the loop and populate controls with current data
+                    done = True
+                    for ii in range(numberOfControls):
+                        if newData[ii]:         
+                            controlButtons[ii].config(text="ON", fg="green", state=NORMAL, command=lambda x=ii: sendCommand(x+1, 0))
+                        else:
+                            controlButtons[ii].config(text="OFF", fg=T.fg, state=NORMAL, command=lambda x=ii: sendCommand(x+1, 1))
+                else:
+                    retryCount += 1 #try again
+
+                if retryCount >= 3:  #The data retrieval has been unsuccessful three times.  Exit the loop and show controls offline
+                    done = True
+                    for ii in range(numberOfControls):
+                        controlButtons[ii].config(text="OFFLINE", state=DISABLED, command=None)
         else:
             dropdown.config(text=("Choose a station to control"))
             for ii in range(numberOfControls):
@@ -1634,6 +1640,7 @@ controlsMenu.add_command(label="Pause/Resume")
 controlsMenu.add_command(label="More Controls", command=openControls)
 menubar.add_cascade(label="Control Tests", menu=controlsMenu)
 
+#TODO: disable these functions, they're unsupported in this version
 testCommentsMenu = Menu(menubar, tearoff=0)
 testCommentsMenu.add_command(label="Add a Comment", command=addComment)
 testCommentsMenu.add_command(label="View Comments", command=viewComments)
