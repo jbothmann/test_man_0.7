@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
+from tkSelectLabel import * #Local Import
 from datetime import datetime
 from struct import *
 import serial
@@ -46,7 +47,7 @@ password = ""
 
 #class Theme, which holds values for the colors and styles that the program should use for all widgets.  Default values approximate Tkinter defaults.
 class Theme:
-    def __init__(self, colorsTitle="Default Gray", fontSizeTitle="Medium", fontTitle="Sans-Serif", bg="gray95", fg="black", contrastbg="white", contrastfg="black", selectbg="#00a2ed", selectfg="white", fontSize=9, font="Helvetica"):
+    def __init__(self, colorsTitle="Default Gray", fontSizeTitle="Medium", fontTitle="Sans-Serif", bg="gray95", fg="black", contrastbg="white", contrastfg="black", selectbg="#00a2ed", selectfg="white", contrastselectbg="#00a2ed", contrastselectfg="white", fontSize=9, font="Helvetica"):
         #inititalize theme identifiers
         self.colorsTitle = colorsTitle
         self.fontSizeTitle = fontSizeTitle
@@ -59,6 +60,8 @@ class Theme:
         self.contrastfg = contrastfg
         self.selectbg = selectbg #colors used when highlighting text
         self.selectfg = selectfg
+        self.contrastselectbg = contrastselectbg #colors used when highlighting text on contrast element
+        self.contrastselectfg = contrastselectfg
         self.fontSize = fontSize
         self.font = font
 
@@ -78,11 +81,15 @@ class Theme:
         elif isinstance(widget, Button) or isinstance(widget, Menubutton):
             widget.config(bg=self.bg, fg=self.fg, activebackground=self.bg, activeforeground=self.fg, font=(self.font, self.fontSize))
         elif isinstance(widget, Entry):
-            widget.config(bg=self.contrastbg, fg=self.contrastfg, selectbackground=self.selectbg, selectforeground=self.selectfg, font=(self.font, self.fontSize))
+            widget.config(bg=self.contrastbg, fg=self.contrastfg, selectbackground=self.contrastselectbg, selectforeground=self.contrastselectfg, font=(self.font, self.fontSize))
+        elif isinstance(widget, SelectLabel): #This conditional must come before Text, because SelectLabel extends Text
+            widget.config(bg=self.bg, fg=self.fg, selectbackground=self.selectbg, selectforeground=self.selectfg, font=(self.font, self.fontSize))
+        elif isinstance(widget, Text):
+            widget.config(bg=self.contrastbg, fg=self.contrastfg, selectbackground=self.contrastselectbg, selectforeground=self.contrastselectfg, font=(self.font, self.fontSize))
         elif isinstance(widget, Checkbutton) or isinstance(widget, Radiobutton):
             widget.config(bg=self.bg, fg='black', activebackground=self.bg, activeforeground=self.bg, font=(self.font, self.fontSize))
         elif isinstance (widget, Menu):
-            widget.config(bg=self.contrastbg, fg=self.contrastfg, activebackground=self.selectbg, activeforeground=self.selectfg, disabledforeground=None, font=(self.font, self.fontSize))
+            widget.config(bg=self.contrastbg, fg=self.contrastfg, activebackground=self.contrastselectbg, activeforeground=self.contrastselectfg, disabledforeground=None, font=(self.font, self.fontSize))
         return widget
 
 #create a Theme object
@@ -163,7 +170,7 @@ class Test:
         self.frame = LabelFrame(dataFrame, labelwidget=self.labelWidgetFrame, padx=5, pady=5, relief=RIDGE)
 
         #initialize dataLabel, which will be used to display info
-        self.dataLabel = Label(self.frame)
+        self.dataLabel = SelectLabel(self.frame)
         #initialize statusIndicator, which will be used to visually represent the status of the test
         self.statusIndicator = Label(self.frame)
 
@@ -1477,6 +1484,8 @@ def theme():
             newTheme.contrastfg="black"
             newTheme.selectbg="#00a2ed"
             newTheme.selectfg="white"
+            newTheme.contrastselectbg=newTheme.selectbg
+            newTheme.contrastselectfg=newTheme.selectfg
         elif colorsVar.get() == "Monochrome":
             newTheme.bg="white"
             newTheme.fg="black"
@@ -1484,6 +1493,8 @@ def theme():
             newTheme.contrastfg="black"
             newTheme.selectbg="gray"
             newTheme.selectfg="black"
+            newTheme.contrastselectbg=newTheme.selectbg
+            newTheme.contrastselectfg=newTheme.selectfg
         elif colorsVar.get() == "Mint":
             newTheme.bg="#dbeed7"
             newTheme.fg="#3f000f"
@@ -1491,6 +1502,8 @@ def theme():
             newTheme.contrastfg="#3f000f"
             newTheme.selectbg="#3f000f"
             newTheme.selectfg="white"
+            newTheme.contrastselectbg=newTheme.selectbg
+            newTheme.contrastselectfg=newTheme.selectfg
         elif colorsVar.get() == "Night":
             newTheme.bg="#1d2951"
             newTheme.fg="white"
@@ -1498,13 +1511,17 @@ def theme():
             newTheme.contrastfg="white"
             newTheme.selectbg="white"
             newTheme.selectfg="slategray"
+            newTheme.contrastselectbg=newTheme.selectbg
+            newTheme.contrastselectfg=newTheme.selectfg
         elif colorsVar.get() == "Two-Tone":
             newTheme.bg="black"
             newTheme.fg="white"
             newTheme.contrastbg="white"
             newTheme.contrastfg="black"
-            newTheme.selectbg="black"
-            newTheme.selectfg="white"
+            newTheme.selectbg="white"
+            newTheme.selectfg="black"
+            newTheme.contrastselectbg="black"
+            newTheme.contrastselectfg="white"
 
         newTheme.fontSizeTitle = fontSizeVar.get()
         if newTheme.fontSizeTitle == "Small":
