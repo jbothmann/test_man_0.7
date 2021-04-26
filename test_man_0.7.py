@@ -108,7 +108,7 @@ class Test:
         except ValueError as e:
             self.testNum = -1
         self.name = name #Should include name of unit, and test type, should be identifiably unique
-        self.serial = serial #serial number of the unit #TODO: change to subtitle?
+        self.serial = serial #subtitle for the  of the unit
         self.status = "Offline"
         self.data = [] #data variables, a len 32 list of 4-lists, including a string defining the datum, a string defining the units, the number datum, and a boolean which determines if the datum is used
         #repair passed data if it is unsuitable or absent
@@ -161,7 +161,7 @@ class Test:
         
         #initialize labelWidgetFrame and its children.  This widget will show the title of the station and a small edit button
         self.labelWidgetFrame = Frame()
-        self.stationNumLabel = Label(self.labelWidgetFrame, font=("Arial", 12))
+        self.stationNumLabel = Label(self.labelWidgetFrame)
         self.stationNumLabel.grid(row=0, column=0)
         self.button0 = Button(self.labelWidgetFrame, text="\U00002699", command=lambda: editTests(self.testNum))
         self.button0.grid(row=0, column=1)
@@ -208,7 +208,6 @@ class Test:
     def redraw(self):
         self.draw(self.r, self.c)
         
-    #TODO: Is this method doing too much?
     #updateLabel, reconfigures the widgets within the gui frame to accurately represent and control the incoming data
     def updateLabel(self):
         global root
@@ -225,18 +224,17 @@ class Test:
             self.statusIndicator.config(text="\U00002B24   Offline", fg="red")
             self.button1.config(text="Pause", state=DISABLED)
             self.button2.config(text="More Controls", state=DISABLED)
-        #in any other state, such as the PLC being offline, stopped, or in an error mode
-        else:
+        else: #in default state:
             self.statusIndicator.config(text=None)
             self.button1.config(text="Pause", state=DISABLED)
             self.button2.config(text="More Controls", state=DISABLED)
             
         if locked:
-            self.button0.config(text="\U00002699", state=DISABLED, command=lambda: editTests(self.testNum))
+            self.button0.config(text="\U00002699", state=DISABLED)
             self.button1.config(text="PAUSE LOCKED", state=DISABLED)
             self.button2.config(text="CONTROLS LOCKED", state=DISABLED)
         else:
-            self.button0.config(text="\U00002699", state=NORMAL, command=lambda: editTests(self.testNum))
+            self.button0.config(text="\U00002699", state=NORMAL)
 
         #reconfigure the minimum size of the main window
         root.update_idletasks()
@@ -275,7 +273,7 @@ class Test:
 
     #Test.toString, will return a text representation of the data in the Test object
     def toString(self):
-        string = self.name+"\nSerial Number: "+self.serial+"\n"
+        string = self.name+"\n"+self.serial+"\n"
         for ii in range(numberOfData):
             if self.data[ii][3]:
                 string += str(self.data[ii][0])+": "+f'{self.data[ii][2]:.2f}'+" "+str(self.data[ii][1])+"\n"
@@ -541,11 +539,11 @@ def editTests(initialTestNum=0):
     slaveAddressEntry = T.apply(Entry(topFrame))
     slaveAddressEntry.grid(row=1, column=2, pady=5, padx=10)
     
-    T.apply(Label(topFrame, text="Station Name: ")).grid(row=2, column=1)
+    T.apply(Label(topFrame, text="Station Title: ")).grid(row=2, column=1)
     nameEntry = T.apply(Entry(topFrame))
     nameEntry.grid(row=2, column=2, pady=5, padx=10)
 
-    T.apply(Label(topFrame, text="Serial Number: ")).grid(row=3, column=1)
+    T.apply(Label(topFrame, text="Station Subtitle: ")).grid(row=3, column=1)
     serialEntry = T.apply(Entry(topFrame))
     serialEntry.grid(row=3, column=2, pady=5, padx=10)
     
@@ -718,11 +716,11 @@ def addTest():
     slaveAddressEntry = T.apply(Entry(topFrame))
     slaveAddressEntry.grid(row=0, column=1, pady=5, padx=10)
     
-    T.apply(Label(topFrame, text="Station Name: ")).grid(row=1, column=0)
+    T.apply(Label(topFrame, text="Station Title: ")).grid(row=1, column=0)
     nameEntry = T.apply(Entry(topFrame))
     nameEntry.grid(row=1, column=1, pady=5, padx=10)
 
-    T.apply(Label(topFrame, text="Serial Number: ")).grid(row=2, column=0)
+    T.apply(Label(topFrame, text="Station Subtitle: ")).grid(row=2, column=0)
     serialEntry = T.apply(Entry(topFrame))
     serialEntry.grid(row=2, column=1, pady=5, padx=10)
 
@@ -846,7 +844,7 @@ def deleteTest():
     #draw the set of checkboxes to the screen
     for i in range(len(tests)):
         option = "Station "+str(tests[i].testNum)+": "+tests[i].name
-        l.append(T.apply(Label(optionsFrame, text=option)))
+        l.append(T.apply(SelectLabel(optionsFrame, text=option)))
         r.append(IntVar())
         r[i].set(0)
         c.append(T.apply(Checkbutton(optionsFrame, text=None, variable=r[i], onvalue=1, offvalue=0, padx=10)))
@@ -916,7 +914,7 @@ def changeView():
     #draw the set of checkboxes to the screen
     for i in range(len(tests)):
         option = "Test "+str(tests[i].testNum)+": "+tests[i].name
-        l.append(T.apply(Label(topFrame, text=option)))
+        l.append(T.apply(SelectLabel(topFrame, text=option)))
         r.append(IntVar())
         r[i].set(tests[i].showTest)
         c.append(T.apply(Checkbutton(topFrame, text=None, variable=r[i], onvalue=1, offvalue=0, padx=10)))
@@ -983,7 +981,7 @@ def writeToFile():
     #draw the set of checkboxes to the screen
     for i in range(len(tests)):
         option = "Station "+str(tests[i].testNum)+": "+tests[i].name
-        l.append(T.apply(Label(topFrame, text=option)))
+        l.append(T.apply(SelectLabel(topFrame, text=option)))
         r.append(IntVar())
         r[i].set(tests[i].showTest)
         c.append(T.apply(Checkbutton(topFrame, text=None, variable=r[i], onvalue=1, offvalue=0, padx=10)))
@@ -1290,7 +1288,7 @@ def editControls(initialTestNum=0):
         nonlocal currentTestIndex
         currentTestIndex=testIndex
         if (currentTestIndex >= 0):
-            dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name))
+            dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name+" \U000025BC"))
             saveButton.config(state=NORMAL, command=save)
             saveAndCloseButton.config(state=NORMAL)
 
@@ -1299,7 +1297,7 @@ def editControls(initialTestNum=0):
                 controlNameEntries[ii].delete(0, END)
                 controlNameEntries[ii].insert(0, tests[currentTestIndex].controlLabels[ii])
         else:
-            dropdown.config(text=("Choose a station to edit"))
+            dropdown.config(text=("Choose a station to edit \U000025BC"))
             for ii in range(numberOfControls):
                 controlNameEntries[ii].delete(0, END)
                 controlNameEntries[ii].config(state=DISABLED)
@@ -1392,7 +1390,7 @@ def openControls(InitialTestNum=0):
         nonlocal currentTestIndex
         currentTestIndex=testIndex
         if (currentTestIndex>=0): 
-            dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name))
+            dropdown.config(text=("Station "+str(tests[testIndex].testNum)+": "+tests[testIndex].name+" \U000025BC"))
             for ii in range(numberOfControls):
                 controlNameLabels[ii].config(text=tests[currentTestIndex].controlLabels[ii])
 
@@ -1415,7 +1413,7 @@ def openControls(InitialTestNum=0):
                     for ii in range(numberOfControls):
                         controlButtons[ii].config(text="OFFLINE", state=DISABLED, command=None)
         else:
-            dropdown.config(text=("Choose a station to control"))
+            dropdown.config(text=("Choose a station to control \U000025BC"))
             for ii in range(numberOfControls):
                 controlNameLabels[ii].config(text="")
                 controlButtons[ii].config(text="", state=DISABLED)
@@ -1472,12 +1470,12 @@ def theme():
     botFrame = newTheme.apply(Frame(tl, bd=0))
     botFrame.pack(side=BOTTOM)
 
-    terse = newTheme.apply(Label(topFrame, text="Current Theme: "+newTheme.colorsTitle+", "+newTheme.fontSizeTitle+" "+newTheme.fontTitle))
+    terse = newTheme.apply(SelectLabel(topFrame, text="Current Theme: "+newTheme.colorsTitle+", "+newTheme.fontSizeTitle+" "+newTheme.fontTitle))
     terse.pack()
 
     def refresh():
-        newTheme.colorsTitle = colorsVar.get()
-        if colorsVar.get() == "Default Gray":
+        newTheme.colorsTitle = colorsVar.get().strip()
+        if newTheme.colorsTitle == "Default Gray":
             newTheme.bg="gray95"
             newTheme.fg="black"
             newTheme.contrastbg="white"
@@ -1486,7 +1484,7 @@ def theme():
             newTheme.selectfg="white"
             newTheme.contrastselectbg=newTheme.selectbg
             newTheme.contrastselectfg=newTheme.selectfg
-        elif colorsVar.get() == "Monochrome":
+        elif newTheme.colorsTitle == "Monochrome":
             newTheme.bg="white"
             newTheme.fg="black"
             newTheme.contrastbg="gray90"
@@ -1495,7 +1493,7 @@ def theme():
             newTheme.selectfg="black"
             newTheme.contrastselectbg=newTheme.selectbg
             newTheme.contrastselectfg=newTheme.selectfg
-        elif colorsVar.get() == "Mint":
+        elif newTheme.colorsTitle == "Mint":
             newTheme.bg="#dbeed7"
             newTheme.fg="#3f000f"
             newTheme.contrastbg="white"
@@ -1504,7 +1502,7 @@ def theme():
             newTheme.selectfg="white"
             newTheme.contrastselectbg=newTheme.selectbg
             newTheme.contrastselectfg=newTheme.selectfg
-        elif colorsVar.get() == "Night":
+        elif newTheme.colorsTitle == "Night":
             newTheme.bg="#1d2951"
             newTheme.fg="white"
             newTheme.contrastbg="slategray"
@@ -1513,7 +1511,7 @@ def theme():
             newTheme.selectfg="slategray"
             newTheme.contrastselectbg=newTheme.selectbg
             newTheme.contrastselectfg=newTheme.selectfg
-        elif colorsVar.get() == "Two-Tone":
+        elif newTheme.colorsTitle == "Two-Tone":
             newTheme.bg="black"
             newTheme.fg="white"
             newTheme.contrastbg="white"
@@ -1523,7 +1521,7 @@ def theme():
             newTheme.contrastselectbg="black"
             newTheme.contrastselectfg="white"
 
-        newTheme.fontSizeTitle = fontSizeVar.get()
+        newTheme.fontSizeTitle = fontSizeVar.get().strip()
         if newTheme.fontSizeTitle == "Small":
             newTheme.fontSize = 7
         elif newTheme.fontSizeTitle == "Medium":
@@ -1533,7 +1531,7 @@ def theme():
         elif newTheme.fontSizeTitle == "Extra Large":
             newTheme.fontSize = 13
 
-        newTheme.fontTitle = fontVar.get()
+        newTheme.fontTitle = fontVar.get().strip()
         if newTheme.fontTitle == "Sans-Serif":
             newTheme.font = "Helvetica"
         elif newTheme.fontTitle == "Serif":
@@ -1558,36 +1556,36 @@ def theme():
 
     colorsVar = StringVar(value=newTheme.colorsTitle)
     colorsOptions = ["Default Gray", "Monochrome", "Mint", "Night", "Two-Tone"]
-    colorsHeader = newTheme.apply(Label(midFrame, text="Color theme:"))
-    colorsHeader.grid(row=0, column=0, columnspan=2)
+    colorsHeader = newTheme.apply(SelectLabel(midFrame, text="Color theme:"))
+    colorsHeader.grid(row=0, column=1, columnspan=1)
 
     for ii in range(len(colorsOptions)):
         r.append(newTheme.apply(Radiobutton(midFrame, variable=colorsVar, value=colorsOptions[ii], command=refresh)))
-        l.append(newTheme.apply(Label(midFrame, text=colorsOptions[ii])))
+        l.append(newTheme.apply(SelectLabel(midFrame, text=colorsOptions[ii])))
 
         r[-1].grid(row=ii+1, column=0)
         l[-1].grid(row=ii+1, column=1)
 
     fontSizeVar = StringVar(value=newTheme.fontSizeTitle)
     fontSizeOptions = ["Small", "Medium", "Large", "Extra Large"]
-    fontSizeHeader = newTheme.apply(Label(midFrame, text="Text Size:"))
-    fontSizeHeader.grid(row=0, column=2, columnspan=2)
+    fontSizeHeader = newTheme.apply(SelectLabel(midFrame, text="Text Size:"))
+    fontSizeHeader.grid(row=0, column=3, columnspan=1)
 
     for ii in range(len(fontSizeOptions)):
         r.append(newTheme.apply(Radiobutton(midFrame, variable=fontSizeVar, value=fontSizeOptions[ii], command=refresh)))
-        l.append(newTheme.apply(Label(midFrame, text=fontSizeOptions[ii])))
+        l.append(newTheme.apply(SelectLabel(midFrame, text=fontSizeOptions[ii])))
 
         r[-1].grid(row=ii+1, column=2)
         l[-1].grid(row=ii+1, column=3)
 
     fontVar = StringVar(value=newTheme.fontTitle)
     fontOptions = ["Sans-Serif", "Serif", "Monospaced"]
-    fontHeader = newTheme.apply(Label(midFrame, text="Font Family:"))
-    fontHeader.grid(row=len(fontSizeOptions)+1, column=2, columnspan=2)
+    fontHeader = newTheme.apply(SelectLabel(midFrame, text="Font Family:"))
+    fontHeader.grid(row=len(fontSizeOptions)+1, column=3, columnspan=1)
 
     for ii in range(len(fontOptions)):
         r.append(newTheme.apply(Radiobutton(midFrame, variable=fontVar, value=fontOptions[ii], command=refresh)))
-        l.append(newTheme.apply(Label(midFrame, text=fontOptions[ii])))
+        l.append(newTheme.apply(SelectLabel(midFrame, text=fontOptions[ii])))
 
         r[-1].grid(row=ii+len(fontSizeOptions)+2, column=2)
         l[-1].grid(row=ii+len(fontSizeOptions)+2, column=3)
@@ -1629,6 +1627,7 @@ pauseAllButton.grid(row=0, column=0)
 resumeAllButton = Button(botControl, text="Resume All Tests", command=resumeAll)
 resumeAllButton.grid(row=0, column=1)
 
+#build the windows-style menubar with multiple cascades #TODO: weird line?? Fonts not working???
 menubar = Menu(root)
 
 fileMenu = Menu(menubar, tearoff=0)
@@ -1655,13 +1654,12 @@ menubar.add_cascade(label="View", menu=viewMenu)
 controlsMenu = Menu(menubar, tearoff=0)
 controlsMenu.add_command(label="Pause/Resume")
 controlsMenu.add_command(label="More Controls", command=openControls)
-menubar.add_cascade(label="Control Tests", menu=controlsMenu)
+menubar.add_cascade(label="Control", menu=controlsMenu)
 
-#TODO: disable these functions, they're unsupported in this version
-testCommentsMenu = Menu(menubar, tearoff=0)
-testCommentsMenu.add_command(label="Add a Comment", command=addComment)
-testCommentsMenu.add_command(label="View Comments", command=viewComments)
-menubar.add_cascade(label="Test Comments", menu=testCommentsMenu)
+# testCommentsMenu = Menu(menubar, tearoff=0)
+# testCommentsMenu.add_command(label="Add a Comment", command=addComment)
+# testCommentsMenu.add_command(label="View Comments", command=viewComments)
+# menubar.add_cascade(label="Test Comments", menu=testCommentsMenu)
 
 root.config(menu=menubar)
 
@@ -1707,8 +1705,8 @@ def update():
         controlsMenu.entryconfig(0, label="Pause/Resume", state=NORMAL) #TODO
         controlsMenu.entryconfig(1, label="More Controls", command=openControls, state=NORMAL)
         
-        testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment, state=NORMAL)
-        testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments, state=NORMAL)
+        # testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment, state=NORMAL)
+        # testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments, state=NORMAL)
         
     else:
         fileMenu.entryconfig(0, label="Save Session", command=saveSession)
@@ -1729,13 +1727,14 @@ def update():
         controlsMenu.entryconfig(0, label="Pause/Resume", state=DISABLED)
         controlsMenu.entryconfig(1, label="More Controls", state=DISABLED)
         
-        testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment)
-        testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments)
+        # testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment)
+        # testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments)
         
 
-    T.apply([fileMenu, functionsMenu, viewMenu, controlsMenu, testCommentsMenu])
+    T.apply([fileMenu, functionsMenu, viewMenu, controlsMenu])
+    # T.apply(testCommentsMenu)
     
-    if locked or len(tests) == 0:
+    if locked or len(tests) == 0 or ser is None:
         pauseAllButton.config(state=DISABLED)
         resumeAllButton.config(state=DISABLED)
     else:
