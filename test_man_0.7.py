@@ -1044,10 +1044,20 @@ def writeToFile():
     writer.update_idletasks()
     writer.minsize(width=max(writer.winfo_reqwidth(),300), height=max(writer.winfo_reqheight(),200))
 
-#TODO: split into two separate menu options
+
 #lockDisplay, will make most functions and buttons unusable
-#can either be protected with a password, or unprotected
+#not protected by password
 def lockDisplay():
+    global locked
+    global passLocked
+    global password
+    locked = 1
+    passLocked = 0
+    update()
+
+#lockDisplayWithPass, will make most functions and buttons unusable
+#prompts the user to submit a password
+def lockDisplayWithPass():
     global locked
     global passLocked
     global password
@@ -1070,6 +1080,7 @@ def lockDisplay():
         update()
         locker.destroy()
         
+    #deprecated
     def lockWithoutPass():
         global locked
         global passLocked
@@ -1084,13 +1095,13 @@ def lockDisplay():
 
     #drawing locker controls
     T.apply(Label(locker, text="Enter Password:")).grid(row=0, column=0, padx=5, pady=5)   
-    T.apply(Button(locker, text = "Lock with Password", command=lockWithPass)).grid(row=1, column=1, padx=5, pady=5)
-    T.apply(Button(locker, text = "Lock without Password", command=lockWithoutPass)).grid(row=1, column=0, padx=5, pady=5)
-    T.apply(Button(locker, text = "Cancel", command=cancel)).grid(row=1, column=2, padx=5, pady=5)
+    T.apply(Button(locker, text = "Lock", command=lockWithPass)).grid(row=1, column=0, padx=5, pady=5)
+    T.apply(Button(locker, text = "Cancel", command=cancel)).grid(row=1, column=1, padx=5, pady=5)
 
     #set window minimum size
     locker.update_idletasks()
     locker.minsize(width=max(locker.winfo_reqwidth(),0), height=max(locker.winfo_reqheight(),0))
+
     
 #unlock display, either unlocks the display if it isn't password protected,
 #or prompts for a password
@@ -1384,7 +1395,7 @@ def openControls(InitialTestNum=0):
 
     dropdown = T.apply(Menubutton(topFrame, text="[default]", relief=RAISED))
 
-    #update() is called whenever a new selection is made on the dropdown menu.  It reconfigures the window to reflect what wwas chosen.
+    #update() is called whenever a new selection is made on the dropdown menu.  It reconfigures the window to reflect what was chosen.
     #if update() is passed an invalid index, then it will show a default selection
     def update(testIndex):
         nonlocal currentTestIndex
@@ -1446,6 +1457,62 @@ def openControls(InitialTestNum=0):
     #set min window size
     tl.update_idletasks()
     tl.minsize(width=max(tl.winfo_reqwidth(),300), height=max(tl.winfo_reqheight(),200))
+
+#TODO: impliment functionality
+def pauseTests():
+    global tests
+    global testIndexDict
+    if len(tests) == 0:
+        messagebox.showerror("Power Tools Test Manager", "There are no stations to control", parent=root.focus_get())
+        return
+    if ser is None:
+        messagebox.showerror("Power Tools Test Manager", "Not connected to a serial port", parent=root.focus_get())
+        return
+    #setup the new menu
+    tl = T.apply(Toplevel())
+    tl.title("Pause/Resume Tests")
+    tl.grab_set() #make window modal
+    tl.focus_set()
+
+    topFrame = T.apply(Frame(tl, bd=0))
+    topFrame.pack(side=TOP)
+
+    midFrame = T.apply(Frame(tl, bd=0))
+    midFrame.pack(side=TOP)
+
+    botFrame = T.apply(Frame(tl, bd=0))
+    botFrame.pack(side=BOTTOM)
+
+    stationLabels = []
+    pauseButtons = []
+    for oo in tests:
+        stationLabels.append(T.apply(SelectLabel(midFrame, text="Station "+str(oo.testNum)+": "+oo.name)))
+        pauseButtons.append(T.apply(Button(midFrame, width=10)))
+
+        stationLabels[-1].grid(column=(testIndexDict[oo.testNum]%10)*2, row=(testIndexDict[oo.testNum]//10)*2, padx=2, pady=3)
+        pauseButtons[-1].grid(column=(testIndexDict[oo.testNum]%10)*2, row=(testIndexDict[oo.testNum]//10)*2+1, padx=2, pady=3)
+
+    def refresh():
+        return
+
+
+    #Pause all button
+    T.apply(Button(botFrame, text="Pause All Tests", command=pauseAll)).grid(row=0, column=0, padx=5, pady=5)
+
+    #Resume all button
+    T.apply(Button(botFrame, text="Resume All Tests", command=resumeAll)).grid(row=0, column=1, padx=5, pady=5)
+
+    #refresh button
+    T.apply(Button(botFrame, text="Refresh", command=refresh)).grid(row=0, column=2, padx=5, pady=5)
+
+    #cancel button
+    T.apply(Button(botFrame, text="Close", command=tl.destroy)).grid(row=0, column=3, padx=5, pady=5)
+
+    #set min window size
+    tl.update_idletasks()
+    tl.minsize(width=max(tl.winfo_reqwidth(),300), height=max(tl.winfo_reqheight(),200))
+
+
 
 
 #theme():  This function opens a window that will allow the user to select which colors, font, and text size the program uses
@@ -1648,11 +1715,16 @@ menubar.add_cascade(label="Edit", menu=functionsMenu)
 viewMenu = Menu(menubar, tearoff=0)
 viewMenu.add_command(label="Hide/Show Stations", command=changeView)
 viewMenu.add_command(label="Theme", command=theme)
-viewMenu.add_command(label="Lock Display", command=lockDisplay)
+
+lockSubMenu = Menu(viewMenu, tearoff=0)
+lockSubMenu.add_command(label="Password Lock", command=lockDisplayWithPass)
+lockSubMenu.add_command(label="No Password Lock", command=lockDisplay)
+viewMenu.add_cascade(label="Lock Display", menu=lockSubMenu)
+
 menubar.add_cascade(label="View", menu=viewMenu)
 
 controlsMenu = Menu(menubar, tearoff=0)
-controlsMenu.add_command(label="Pause/Resume")
+controlsMenu.add_command(label="Pause/Resume", command=pauseTests)
 controlsMenu.add_command(label="More Controls", command=openControls)
 menubar.add_cascade(label="Control", menu=controlsMenu)
 
@@ -1700,7 +1772,8 @@ def update():
         
         viewMenu.entryconfig(0, label="Hide/Show Stations", command=changeView, state=NORMAL)
         viewMenu.entryconfig(1, label="Theme", command=theme, state=NORMAL)
-        viewMenu.entryconfig(2, label="Lock Display", command=lockDisplay, state=NORMAL)
+        viewMenu.delete(2)
+        viewMenu.add_cascade(label="Lock Display", menu=lockSubMenu)
         
         controlsMenu.entryconfig(0, label="Pause/Resume", state=NORMAL) #TODO
         controlsMenu.entryconfig(1, label="More Controls", command=openControls, state=NORMAL)
@@ -1722,7 +1795,8 @@ def update():
         
         viewMenu.entryconfig(0, label="Hide/Show Stations", state=DISABLED)
         viewMenu.entryconfig(1, label="Theme", command=theme)
-        viewMenu.entryconfig(2, label="Unlock Display", command=unlockDisplay)
+        viewMenu.delete(2)
+        viewMenu.add_command(label="Unlock Display", command=unlockDisplay)
         
         controlsMenu.entryconfig(0, label="Pause/Resume", state=DISABLED)
         controlsMenu.entryconfig(1, label="More Controls", state=DISABLED)
@@ -1731,7 +1805,7 @@ def update():
         # testCommentsMenu.entryconfig(1, label="View Comments", command=viewComments)
         
 
-    T.apply([fileMenu, functionsMenu, viewMenu, controlsMenu])
+    T.apply([fileMenu, functionsMenu, viewMenu, lockSubMenu, controlsMenu])
     # T.apply(testCommentsMenu)
     
     if locked or len(tests) == 0 or ser is None:
