@@ -217,7 +217,7 @@ class Test:
             self.button1.config(text="Pause", command=lambda: pause(self.testNum), state=NORMAL)
             self.button2.config(text="More Controls", command=lambda: openControls(self.testNum), state=NORMAL)
         elif self.status == "Paused":
-            self.statusIndicator.config(text="\U00002B24   Paused", fg="T.fg")
+            self.statusIndicator.config(text="\U00002B24   Paused", fg=T.fg)
             self.button1.config(text="Resume", command=lambda: resume(self.testNum), state=NORMAL)
             self.button2.config(text="More Controls", command=lambda: openControls(self.testNum), state=NORMAL)
         elif self.status == "Offline":
@@ -1422,7 +1422,7 @@ def openControls(InitialTestNum=0):
                 if retryCount >= 3:  #The data retrieval has been unsuccessful three times.  Exit the loop and show controls offline
                     done = True
                     for ii in range(numberOfControls):
-                        controlButtons[ii].config(text="OFFLINE", state=DISABLED, command=None)
+                        controlButtons[ii].config(text="OFFLINE", fg=T.fg, state=DISABLED, command=None)
         else:
             dropdown.config(text=("Choose a station to control \U000025BC"))
             for ii in range(numberOfControls):
@@ -1458,7 +1458,7 @@ def openControls(InitialTestNum=0):
     tl.update_idletasks()
     tl.minsize(width=max(tl.winfo_reqwidth(),300), height=max(tl.winfo_reqheight(),200))
 
-#TODO: impliment functionality
+#pauseTests, gives the user a focused dialog for controlling the action of all connected stations
 def pauseTests():
     global tests
     global testIndexDict
@@ -1474,6 +1474,7 @@ def pauseTests():
     tl.grab_set() #make window modal
     tl.focus_set()
 
+    #window organization
     topFrame = T.apply(Frame(tl, bd=0))
     topFrame.pack(side=TOP)
 
@@ -1483,6 +1484,7 @@ def pauseTests():
     botFrame = T.apply(Frame(tl, bd=0))
     botFrame.pack(side=BOTTOM)
 
+    #Set up main interactable elements.  This time, I used an enhanced for loop to try a more pythonic approach
     stationLabels = []
     pauseButtons = []
     for oo in tests:
@@ -1492,15 +1494,52 @@ def pauseTests():
         stationLabels[-1].grid(column=(testIndexDict[oo.testNum]%10)*2, row=(testIndexDict[oo.testNum]//10)*2, padx=2, pady=3)
         pauseButtons[-1].grid(column=(testIndexDict[oo.testNum]%10)*2, row=(testIndexDict[oo.testNum]//10)*2+1, padx=2, pady=3)
 
+    #wrapper functions which refresh teh dialog after their message has been sent
+    def sendPause(slID):
+        pause(slID)
+        refresh()
+
+    def sendResume(slID):
+        resume(slID)
+        refresh()
+
+    def sendPauseAll():
+        pauseAll()
+        refresh()
+
+    def sendResumeAll():
+        resumeAll()
+        refresh()
+
+    #queries all test stations for their pause status and update controls to reflect
     def refresh():
-        return
+        for oo in tests:
+            retryCount = 0
+            done = False
+            while not done:  #If the data retrieval is unsuccessful, Try three times before showing that the PLC is offline
+                retSuccess, paused = checkIfPaused(oo.testNum)
+                if retSuccess:  #The data retrieval has been successful.  Exit the loop and populate control with current data
+                    done = True
+                    if not paused:         
+                        pauseButtons[testIndexDict[oo.testNum]].config(text="In Progress", fg="green", state=NORMAL, command=lambda x=oo: sendPause(x.testNum))
+                    else:
+                        pauseButtons[testIndexDict[oo.testNum]].config(text="Paused", fg=T.fg, state=NORMAL, command=lambda x=oo: sendResume(x.testNum))
+                else:
+                    retryCount += 1 #try again
+
+                if retryCount >= 3:  #The data retrieval has been unsuccessful three times.  Exit the loop and show control offline
+                    done = True
+                    pauseButtons[testIndexDict[oo.testNum]].config(text="OFFLINE", fg=T.fg, state=DISABLED, command=None)
+
+    #populate the screen with current information for the first time
+    refresh()
 
 
     #Pause all button
-    T.apply(Button(botFrame, text="Pause All Tests", command=pauseAll)).grid(row=0, column=0, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Pause All Tests", command=sendPauseAll)).grid(row=0, column=0, padx=5, pady=5)
 
     #Resume all button
-    T.apply(Button(botFrame, text="Resume All Tests", command=resumeAll)).grid(row=0, column=1, padx=5, pady=5)
+    T.apply(Button(botFrame, text="Resume All Tests", command=sendResumeAll)).grid(row=0, column=1, padx=5, pady=5)
 
     #refresh button
     T.apply(Button(botFrame, text="Refresh", command=refresh)).grid(row=0, column=2, padx=5, pady=5)
@@ -1511,8 +1550,6 @@ def pauseTests():
     #set min window size
     tl.update_idletasks()
     tl.minsize(width=max(tl.winfo_reqwidth(),300), height=max(tl.winfo_reqheight(),200))
-
-
 
 
 #theme():  This function opens a window that will allow the user to select which colors, font, and text size the program uses
@@ -1775,7 +1812,7 @@ def update():
         viewMenu.delete(2)
         viewMenu.add_cascade(label="Lock Display", menu=lockSubMenu)
         
-        controlsMenu.entryconfig(0, label="Pause/Resume", state=NORMAL) #TODO
+        controlsMenu.entryconfig(0, label="Pause/Resume", state=NORMAL)
         controlsMenu.entryconfig(1, label="More Controls", command=openControls, state=NORMAL)
         
         # testCommentsMenu.entryconfig(0, label="Add a Comment", command=addComment, state=NORMAL)
