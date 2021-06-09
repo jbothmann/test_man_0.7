@@ -220,6 +220,10 @@ class Test:
             self.statusIndicator.config(text="\U00002B24   Paused", fg=T.fg)
             self.button1.config(text="Resume", command=lambda: resume(self.testNum), state=NORMAL)
             self.button2.config(text="More Controls", command=lambda: openControls(self.testNum), state=NORMAL)
+        elif self.status == "Stopped":
+            self.statusIndicator.config(text="\U00002B24   Stopped", fg="orange")
+            self.button1.config(text="Pause", state=DISABLED)
+            self.button2.config(text="More Controls", command=lambda: openControls(self.testNum), state=NORMAL)
         elif self.status == "Offline":
             self.statusIndicator.config(text="\U00002B24   Offline", fg="red")
             self.button1.config(text="Pause", state=DISABLED)
@@ -1517,13 +1521,16 @@ def pauseTests():
             retryCount = 0
             done = False
             while not done:  #If the data retrieval is unsuccessful, Try three times before showing that the PLC is offline
-                retSuccess, paused = checkIfPaused(oo.testNum)
-                if retSuccess:  #The data retrieval has been successful.  Exit the loop and populate control with current data
+                rSuccess, isRunning = checkIfRunning(oo.testNum)
+                pSuccess, isPaused = checkIfPaused(oo.testNum)
+                if rSuccess and pSuccess:  #The data retrieval has been successful.  Exit the loop and populate control with current data
                     done = True
-                    if not paused:         
-                        pauseButtons[testIndexDict[oo.testNum]].config(text="In Progress", fg="green", state=NORMAL, command=lambda x=oo: sendPause(x.testNum))
-                    else:
+                    if not isRunning:
+                        pauseButtons[testIndexDict[oo.testNum]].config(text="STOPPED", fg="orange", state=DISABLED, command=None)
+                    elif isPaused:
                         pauseButtons[testIndexDict[oo.testNum]].config(text="Paused", fg=T.fg, state=NORMAL, command=lambda x=oo: sendResume(x.testNum))
+                    else:
+                        pauseButtons[testIndexDict[oo.testNum]].config(text="In Progress", fg="green", state=NORMAL, command=lambda x=oo: sendPause(x.testNum))
                 else:
                     retryCount += 1 #try again
 
